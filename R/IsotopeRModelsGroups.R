@@ -2110,6 +2110,7 @@ IsotopeRnomegroup <- "model {
 }"
 
 
+##DEBUGGING THIS GUY
 IsotopeRnomenodiscrimgroup <- "model {
     
   ###############################
@@ -2177,22 +2178,18 @@ IsotopeRnomenodiscrimgroup <- "model {
     p.group.tot[group] <- sum(p.group.transform[group,]); 
   }
   
-  for(group in 1:num.groups) {
-    for(source in 1:(num.sources-1)) {
-      p.group[group,source] <- p.group.transform[group,source]/p.group.tot[group]
-    }
-    p.group[group,num.sources] <- 1-sum(p.group[group,1:(num.sources-1)]); 
-  }
-
   ##generate individuals draws from the global mean
   ind.invSig2 ~ dgamma(.01, .01);
   ind.var <- 1/ind.invSig2;
-  for(i in 1:N) {
-    for(source in 1:num.sources) {
-      p.ind[i,source] ~ dnorm(p.transform[source], ind.invSig2);
-      exp.p[i,source] <- exp(p.ind[i,source]);
+  for(group in 1:num.groups) {
+    for(i in groupnum.mat[group,1]:groupnum.mat[group,2]) { 
+      for(source in 1:num.sources) {
+		p.ind[i,source] ~ dnorm(p.group.clr[group,source], ind.invSig2);
+		exp.p[i,source] <- exp(p.ind[i,source]);
+      }
     }
   }
+  
     
   ##CLR math: This does the back-transform to get back to proportions
   for(source in 1:num.sources) {
@@ -2209,7 +2206,7 @@ IsotopeRnomenodiscrimgroup <- "model {
     for(source in 1:(num.sources-1)) {
       p.group[group,source] <- p.group.transform[group,source]/p.group.tot[group]
     }
-    p.group[group,num.sources] <- 1-sum(p.group[group,1:(num.sources-1)]); 
+    p.group[group, num.sources] <- 1-sum(p.group[group,1:(num.sources-1)]); 
   }
 
   ##rescale p.pop for concentration dependence
@@ -2326,7 +2323,7 @@ IsotopeRnomenodiscrimgroup <- "model {
 
     for(x in 1:num.iso) {
       for(y in 1:num.iso) {
-    sumobscov.mat[x,y,i] <- sum(obscov.mat[x,y,1:num.sources,i])  
+		sumobscov.mat[x,y,i] <- sum(obscov.mat[x,y,1:num.sources,i])  
       }
     }
     for(iso in 1:num.iso) {
@@ -2338,7 +2335,6 @@ IsotopeRnomenodiscrimgroup <- "model {
   for(iso in 1:num.iso) {
   
     sd.res[iso] <- sqrt(res.err[iso,iso])
-#     sd.me[iso] <- sqrt(cov.ME[iso,iso])
             
     for(source in 1:num.sources) {
 

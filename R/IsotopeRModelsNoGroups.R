@@ -1300,6 +1300,7 @@ IsotopeRnoconcnome <- "model {
 
 }"
 
+
 IsotopeRnoconcnomenodiscrim <-  "model {
 
 	for(source in 1:num.sources) {
@@ -1971,6 +1972,7 @@ IsotopeRnome <- "model {
 }"
 
 
+##debuggin this one
 IsotopeRnomenodiscrim <- "model {
     
   ###############################

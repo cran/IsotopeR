@@ -1,8 +1,23 @@
-v.1.2.1 
+Known Bugs
+*error when using more than 'n+1' sources with concentration dependence
+
+v.0.3
+*updated vignette to include an example analysis.
+*added group level estimates to the dietary source contributions plots. these are shown as broken lines.
+*updated mixing estimate plots to use the density function
+*fixed error message on 2 source model when no concentration dependence is present.
+*added shades of color to observation plots to identify subsources
+*added color option to observation plots, also now allows indefinite number of sources on observation plots
+*changed observation plots to only include point observations.
+*added function to load previously run data and make plots.
+*added appropriate colors to the source contribution plots.
+
+
+v.0.2.1 
 *fixed bug on 2 source plots
 
 
-v1.2 
+v0.2 
 4/7/2011
 * fixed bug when all text files are included in the model.
 * fixed subsource estimation procedure.

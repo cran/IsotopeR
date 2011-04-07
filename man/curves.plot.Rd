@@ -5,7 +5,7 @@
 Curves Plot
 }
 \description{
-Plots the population level proportional source estimates (black) and individual level estimates (blue).
+Plots the population level proportional source estimates (solid black line), group level  and individual level estimates (blue).
 }
 \usage{
 curves.plot(jags.1, num.sources, num.chains, color = FALSE, individuals, xlab.vec, num.groups)

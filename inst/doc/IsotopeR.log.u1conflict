@@ -1,9 +1,12 @@
-This is pdfTeX, Version 3.1415926-1.40.10 (TeX Live 2009/Debian) (format=pdflatex 2011.4.30)  8 MAY 2011 13:37
+This is pdfTeX, Version 3.1415926-1.40.10 (TeX Live 2009/Debian) (format=pdflatex 2011.4.30)  14 OCT 2011 12:01
 entering extended mode
  %&-line parsing enabled.
-**\nonstopmode \catcode126=12 \def\normaltilde{~}\catcode126=13 \let~\normaltil
-de  \input ./IsotopeR.tex
-(./IsotopeR.tex (/usr/share/texmf-texlive/tex/latex/base/article.cls
+**IsotopeR.tex
+(./IsotopeR.tex
+LaTeX2e <2009/09/24>
+Babel <v3.8l> and hyphenation patterns for english, usenglishmax, dumylang, noh
+yphenation, loaded.
+(/usr/share/texmf-texlive/tex/latex/base/article.cls
 Document Class: article 2007/10/19 v1.4h Standard LaTeX document class
 (/usr/share/texmf-texlive/tex/latex/base/size10.clo
 File: size10.clo 2007/10/19 v1.4h Standard LaTeX file (size option)
@@ -386,7 +389,9 @@ Package: atbegshi 2008/07/31 v1.9 At begin shipout hook (HO)
 File: hpdftex.def 2009/10/09 v6.79a Hyperref driver for pdfTeX
 \Fld@listcount=\count94
 )
-(/usr/share/R/share/texmf/tex/latex/Sweave.sty
+Package hyperref Info: Option `colorlinks' set `false' on input line 11.
+
+(/usr/share/texmf/tex/latex/R/tex/latex/Sweave.sty
 Package: Sweave 
 
 (/usr/share/texmf-texlive/tex/latex/base/ifthen.sty
@@ -403,7 +408,7 @@ Style option: `fancyvrb' v2.7a, with DG/SPQR fixes, and firstline=lastline fix
 \c@FancyVerbLine=\count96
 \FV@StepNumber=\count97
 \FV@OutFile=\write3
-) (/usr/share/R/share/texmf/tex/latex/upquote.sty
+) (/usr/share/texmf/tex/latex/R/tex/latex/upquote.sty
 Package: upquote 2003/08/11 v1.1 Covington's upright-quote modification to verb
 atim and verb
 
@@ -572,27 +577,27 @@ File: t1aer.fd 1997/11/16 Font definitions for T1/aer.
 )))) (./IsotopeR.aux)
 \openout1 = `IsotopeR.aux'.
 
-LaTeX Font Info:    Checking defaults for OML/cmm/m/it on input line 13.
-LaTeX Font Info:    ... okay on input line 13.
-LaTeX Font Info:    Checking defaults for T1/cmr/m/n on input line 13.
-LaTeX Font Info:    ... okay on input line 13.
-LaTeX Font Info:    Checking defaults for OT1/cmr/m/n on input line 13.
-LaTeX Font Info:    ... okay on input line 13.
-LaTeX Font Info:    Checking defaults for OMS/cmsy/m/n on input line 13.
-LaTeX Font Info:    ... okay on input line 13.
-LaTeX Font Info:    Checking defaults for OMX/cmex/m/n on input line 13.
-LaTeX Font Info:    ... okay on input line 13.
-LaTeX Font Info:    Checking defaults for U/cmr/m/n on input line 13.
-LaTeX Font Info:    ... okay on input line 13.
-LaTeX Font Info:    Checking defaults for PD1/pdf/m/n on input line 13.
-LaTeX Font Info:    ... okay on input line 13.
-LaTeX Font Info:    Checking defaults for TS1/cmr/m/n on input line 13.
-LaTeX Font Info:    Try loading font information for TS1+cmr on input line 13.
+LaTeX Font Info:    Checking defaults for OML/cmm/m/it on input line 17.
+LaTeX Font Info:    ... okay on input line 17.
+LaTeX Font Info:    Checking defaults for T1/cmr/m/n on input line 17.
+LaTeX Font Info:    ... okay on input line 17.
+LaTeX Font Info:    Checking defaults for OT1/cmr/m/n on input line 17.
+LaTeX Font Info:    ... okay on input line 17.
+LaTeX Font Info:    Checking defaults for OMS/cmsy/m/n on input line 17.
+LaTeX Font Info:    ... okay on input line 17.
+LaTeX Font Info:    Checking defaults for OMX/cmex/m/n on input line 17.
+LaTeX Font Info:    ... okay on input line 17.
+LaTeX Font Info:    Checking defaults for U/cmr/m/n on input line 17.
+LaTeX Font Info:    ... okay on input line 17.
+LaTeX Font Info:    Checking defaults for PD1/pdf/m/n on input line 17.
+LaTeX Font Info:    ... okay on input line 17.
+LaTeX Font Info:    Checking defaults for TS1/cmr/m/n on input line 17.
+LaTeX Font Info:    Try loading font information for TS1+cmr on input line 17.
 
 (/usr/share/texmf-texlive/tex/latex/base/ts1cmr.fd
 File: ts1cmr.fd 1999/05/25 v2.5h Standard LaTeX font definitions
 )
-LaTeX Font Info:    ... okay on input line 13.
+LaTeX Font Info:    ... okay on input line 17.
 
 (/usr/share/texmf/tex/context/base/supp-pdf.mkii
 [Loading MPS to PDF converter (version 2006.09.02).]
@@ -607,7 +612,7 @@ LaTeX Font Info:    ... okay on input line 13.
 \MPnumerator=\count102
 \everyMPtoPDFconversion=\toks19
 )
-Package hyperref Info: Link coloring ON on input line 13.
+Package hyperref Info: Link coloring OFF on input line 17.
  (/usr/share/texmf-texlive/tex/latex/hyperref/nameref.sty
 Package: nameref 2007/05/29 v2.31 Cross-referencing by name of section
 
@@ -616,8 +621,8 @@ Package: refcount 2008/08/11 v3.1 Data extraction from references (HO)
 )
 \c@section@level=\count103
 )
-LaTeX Info: Redefining \ref on input line 13.
-LaTeX Info: Redefining \pageref on input line 13.
+LaTeX Info: Redefining \ref on input line 17.
+LaTeX Info: Redefining \pageref on input line 17.
  (./IsotopeR.out)
 (./IsotopeR.out)
 \@outlinefile=\write4
@@ -625,69 +630,108 @@ LaTeX Info: Redefining \pageref on input line 13.
 
 \AtBeginShipoutBox=\box28
 LaTeX Font Info:    External font `cmex10' loaded for size
-(Font)              <12> on input line 15.
+(Font)              <12> on input line 19.
 LaTeX Font Info:    External font `cmex10' loaded for size
-(Font)              <8> on input line 15.
+(Font)              <8> on input line 19.
 LaTeX Font Info:    External font `cmex10' loaded for size
-(Font)              <6> on input line 15.
- (./IsotopeR.toc)
+(Font)              <6> on input line 19.
+
+
+LaTeX Warning: No \author given.
+
+(./IsotopeR.toc
+LaTeX Font Info:    External font `cmex10' loaded for size
+(Font)              <7> on input line 2.
+LaTeX Font Info:    External font `cmex10' loaded for size
+(Font)              <5> on input line 2.
+)
 \tf@toc=\write5
 \openout5 = `IsotopeR.toc'.
 
-LaTeX Font Info:    Try loading font information for T1+aett on input line 19.
+ [1
+
+{/var/lib/texmf/fonts/map/pdftex/updmap/pdftex.map}]
+LaTeX Font Info:    Try loading font information for T1+aett on input line 24.
 
 (/usr/share/texmf-texlive/tex/latex/ae/t1aett.fd
 File: t1aett.fd 1997/11/16 Font definitions for T1/aett.
 )
-LaTeX Font Info:    External font `cmex10' loaded for size
-(Font)              <7> on input line 19.
-LaTeX Font Info:    External font `cmex10' loaded for size
-(Font)              <5> on input line 19.
+LaTeX Font Info:    Try loading font information for TS1+aer on input line 31.
 
-<IsoScreen.png, id=4, 491.8375pt x 436.63126pt>
-File: IsoScreen.png Graphic file (type png)
- <use IsoScreen.png>
-LaTeX Font Info:    Try loading font information for TS1+aer on input line 32.
-
-(/usr/share/R/share/texmf/tex/latex/ts1aer.fd
+(/usr/share/texmf/tex/latex/R/tex/latex/ts1aer.fd
 File: ts1aer.fd 
 )
 LaTeX Font Info:    Font shape `TS1/aer/m/n' in size <10> not available
-(Font)              Font shape `TS1/cmr/m/n' tried instead on input line 32.
+(Font)              Font shape `TS1/cmr/m/n' tried instead on input line 31.
 
-Overfull \hbox (2.77731pt too wide) in paragraph at lines 32--33
-[]\T1/aer/m/n/10 Install JAGS from [][]$\T1/aett/m/n/10 http : / / sourceforge 
-. net / projects / mcmc-[]jags/$[][] \T1/aer/m/n/10 (Iso-
+Overfull \hbox (2.77731pt too wide) in paragraph at lines 31--32
+[]\T1/aer/m/n/10 Install JAGS from []$\T1/aett/m/n/10 http : / / sourceforge . 
+net / projects / mcmc-[]jags/$[] \T1/aer/m/n/10 (Iso-
  []
 
-[1
+<Screenshot-IsotopeR.png, id=54, 580.1675pt x 425.59pt>
+File: Screenshot-IsotopeR.png Graphic file (type png)
 
-{/var/lib/texmf/fonts/map/pdftex/updmap/pdftex.map} <./IsoScreen.png (PNG copy)
->] [2] [3] [4]
-Overfull \hbox (270.40094pt too wide) in paragraph at lines 154--167
- [] 
+<use Screenshot-IsotopeR.png>
+
+LaTeX Warning: `!h' float specifier changed to `!ht'.
+
+<Screenshot-New_Run.png, id=57, 518.93875pt x 502.87875pt>
+File: Screenshot-New_Run.png Graphic file (type png)
+
+<use Screenshot-New_Run.png>
+
+LaTeX Warning: `!h' float specifier changed to `!ht'.
+
+[2] <Screenshot-Load_Previous_Run.png, id=70, 416.55624pt x 210.7875pt>
+File: Screenshot-Load_Previous_Run.png Graphic file (type png)
+
+<use Screenshot-Load_Previous_Run.png> [3 <./Screenshot-IsotopeR.png> <./Screen
+shot-New_Run.png>] [4 <./Screenshot-Load_Previous_Run.png>]
+
+LaTeX Warning: `!h' float specifier changed to `!ht'.
+
+[5] [6] [7
+
+]
+Overfull \hbox (10.25856pt too wide) in paragraph at lines 200--201
+\T1/aer/m/n/10 the population-level (solid), group-level (dashed), and individu
+al-level (trans-
  []
 
-[5] (./IsotopeR.aux) ) 
+
+Overfull \hbox (5.15656pt too wide) in paragraph at lines 210--211
+[]\T1/aer/m/n/10 Individual-level pro-por-tional di-etary con-tri-bu-tion for i
+n-di-vid-ual x, source
+ []
+
+
+Overfull \hbox (5.0855pt too wide) in paragraph at lines 213--214
+[]\T1/aer/m/n/10 Concentration stan-dard de-vi-a-tions for con-cen-tra-tions i 
+and source
+ []
+
+[8] [9] (./IsotopeR.aux) ) 
 Here is how much of TeX's memory you used:
- 5627 strings out of 495061
- 79957 string characters out of 1182621
- 148118 words of memory out of 3000000
- 8667 multiletter control sequences out of 15000+50000
- 23417 words of font info for 53 fonts, out of 3000000 for 9000
+ 5668 strings out of 495061
+ 80619 string characters out of 1182621
+ 147275 words of memory out of 3000000
+ 8687 multiletter control sequences out of 15000+50000
+ 26563 words of font info for 59 fonts, out of 3000000 for 9000
  28 hyphenation exceptions out of 8191
- 38i,7n,21p,959b,368s stack positions out of 5000i,500n,10000p,200000b,50000s
- </home/troutinthemilk/.texmf-var/fonts/pk/ljfour/jknappe
-n/ec/tcrm1000.600pk></usr/share/texmf-texlive/fonts/type1/public/amsfonts/cm/cm
-bx10.pfb></usr/share/texmf-texlive/fonts/type1/public/amsfonts/cm/cmbx12.pfb></
-usr/share/texmf-texlive/fonts/type1/public/amsfonts/cm/cmmi10.pfb></usr/share/t
-exmf-texlive/fonts/type1/public/amsfonts/cm/cmr10.pfb></usr/share/texmf-texlive
-/fonts/type1/public/amsfonts/cm/cmr12.pfb></usr/share/texmf-texlive/fonts/type1
-/public/amsfonts/cm/cmr17.pfb></usr/share/texmf-texlive/fonts/type1/public/amsf
-onts/cm/cmtt10.pfb>
-Output written on IsotopeR.pdf (5 pages, 154378 bytes).
+ 38i,10n,22p,852b,355s stack positions out of 5000i,500n,10000p,200000b,50000s
+ </home/troutinthemilk/.texmf-var/fonts/pk/ljfour/jkn
+appen/ec/tcrm1000.600pk></usr/share/texmf-texlive/fonts/type1/public/amsfonts/c
+m/cmbx10.pfb></usr/share/texmf-texlive/fonts/type1/public/amsfonts/cm/cmbx12.pf
+b></usr/share/texmf-texlive/fonts/type1/public/amsfonts/cm/cmmi10.pfb></usr/sha
+re/texmf-texlive/fonts/type1/public/amsfonts/cm/cmr10.pfb></usr/share/texmf-tex
+live/fonts/type1/public/amsfonts/cm/cmr12.pfb></usr/share/texmf-texlive/fonts/t
+ype1/public/amsfonts/cm/cmr17.pfb></usr/share/texmf-texlive/fonts/type1/public/
+amsfonts/cm/cmr7.pfb></usr/share/texmf-texlive/fonts/type1/public/amsfonts/cm/c
+mtt10.pfb>
+Output written on IsotopeR.pdf (9 pages, 199843 bytes).
 PDF statistics:
- 79 PDF objects out of 1000 (max. 8388607)
- 13 named destinations out of 1000 (max. 500000)
- 6 words of extra memory for PDF output out of 10000 (max. 10000000)
+ 153 PDF objects out of 1000 (max. 8388607)
+ 27 named destinations out of 1000 (max. 500000)
+ 72 words of extra memory for PDF output out of 10000 (max. 10000000)
 

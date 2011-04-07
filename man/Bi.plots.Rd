@@ -8,25 +8,24 @@ Mixing Space, 2 sources
 2 source mixing space plot used to plot the source estimations and the observations or model fits.
 }
 \usage{
-Bi.plots(jags.1, X, plot.mix = FALSE, plot.ind.flag = FALSE, me.flag = FALSE)
+Bi.plots(jags.1, X, sources=NA, plot.mix = FALSE, plot.ind.flag = FALSE, me.flag = FALSE, color.plots=TRUE)
 }
 %- maybe also 'usage' for other objects documented here.
 \arguments{
-  \item{jags.1}{
-A jags object, output from the runjags package.
-}
-  \item{X}{
-Isotopic mixture data
-}
-  \item{plot.mix}{
-A flag, plots the estimated mixture values, when TRUE (1). If FALSE (0) then the the function plots the observed mixture values. 
-}
-  \item{plot.ind.flag}{
-Legacy argument, not currently used.
-}
-  \item{me.flag}{
-Denotes wether to plot the measurement error along with observations.
-}
+\item{jags.1}{
+	A jags object, output from the runjags package.}
+\item{X}{
+	Isotopic mixture data}
+\item{sources}{
+	A matrix including all source information. Should be formatted as a source file as discussed in the IsotopeR vignette.}
+\item{plot.mix}{
+	A flag, plots the estimated mixture values, when TRUE (1). If FALSE (0) then the the function plots the observed mixture values.  }
+\item{plot.ind.flag}{
+	Legacy argument, not currently used. }
+\item{me.flag}{
+	Denotes wether to plot the measurement error along with observations.}
+\item{color.plots}{
+	Denotes whether plots should be color, or black and white. The user does not have the ability to specify which colors should be used. }
 }
 \author{
 Jake Ferguson
