@@ -22,7 +22,7 @@ Jake Hopkins, Jake Ferguson
 \code{\link{IsoWrapper}}
 }
 \examples{
-#to run IsotopeR call:
+#to run IsotopeR call
 #IsotopeR()
 #then follow the gui prompts.
 }

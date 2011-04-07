@@ -8,7 +8,7 @@ Curves Plot
 Plots the population level proportional source estimates (black) and individual level estimates (blue).
 }
 \usage{
-curves.plot(jags.1, num.sources, num.chains, color = FALSE, individuals, xlab.vec)
+curves.plot(jags.1, num.sources, num.chains, color = FALSE, individuals, xlab.vec, num.groups)
 }
 %- maybe also 'usage' for other objects documented here.
 \arguments{
@@ -30,6 +30,10 @@ Number of individuals in the sample
   \item{xlab.vec}{
 The name of dietary sources.
 }
+ \item{num.groups}{
+The number of groups that were estimated.
+}
+
 }
 
 \author{

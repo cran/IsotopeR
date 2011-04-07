@@ -1,7 +1,7 @@
 Package: IsotopeR
 Type: Package
 Title: IsotopeR
-Version: 0.1
+Version: 0.2-1
 Date: 2011-04-07
 Author: Jack Hopkins, Jake Ferguson
 Maintainer: Jake Ferguson <troutinthemilk@gmail.com>
@@ -11,6 +11,6 @@ Description: Estimates diet contributions from isotopic sources using
 Depends: fgui, runjags, ellipse, plotrix
 License: GPL (>= 2)
 LazyLoad: yes
-Packaged: 2001-01-01 03:08:59 UTC; troutinthemilk
+Packaged: 2011-05-08 17:37:59 UTC; troutinthemilk
 Repository: CRAN
-Date/Publication: 2011-04-27 09:20:29
+Date/Publication: 2011-05-09 07:56:02

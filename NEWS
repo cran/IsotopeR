@@ -1,0 +1,14 @@
+v.1.2.1 
+*fixed bug on 2 source plots
+
+
+v1.2 
+4/7/2011
+* fixed bug when all text files are included in the model.
+* fixed subsource estimation procedure.
+* fixed group estimation procedure.
+* updated posterior diet contribution plots to include group estimates.
+* fixed 2 source mixture and estimation plots.
+* cleaned up values of input data passed into run.jags
+* cleaned up output variables returned from run.jags
+* added vignette
