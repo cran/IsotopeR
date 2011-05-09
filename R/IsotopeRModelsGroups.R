@@ -1,10 +1,10 @@
 ##Isotope Mixing ,Model with Measurement Error, Source Correlation, Concentration Error and residual error
 ##doesnt estimate third source concentration, inputs mean and variance
 ##outputs C:N ratios
-##Jake Ferguson updated 5/1/2011
+##Jake Ferguson updated 5/4/2011
 ##based on original code from moore and semmens 2009
 
-IsotopeRfull <- "model {
+IsotopeRfullgroup <- "model {
 
   ##################################
   ##estimate the measurement error##
@@ -50,12 +50,6 @@ IsotopeRfull <- "model {
     }
   
     D.tau[1:num.iso,1:num.iso,source] <- D.tau.temp[,,source]
-#     mu.conc[1:num.iso,source] ~ dmnorm(dmu.prior.mu[,source], dmu.prior.tau[,])
-      
-#     for(count in 1:cd.ss[source]) {
-#         cd.array[count,1:num.iso,source] ~ dmnorm(mu.conc[,source], D.tau[,,source])
-#     }
-
 
 	##draws subsource means and fits to data
     for(sub in 1:subcd.vec[source]) { 
@@ -76,7 +70,7 @@ IsotopeRfull <- "model {
   
   
   ###########################
-  ##Proportion estimamation##
+  ##Proportion estimation##
   ###########################
   ## this is the global mean
   for(i in 1:num.sources) {mu[i] ~ dnorm(alpha.clr[i], 0.001)} 
@@ -84,41 +78,53 @@ IsotopeRfull <- "model {
   pop.var <- 1/pop.invSig2
   for(source in 1:num.sources) {
     p.transform[source] ~ dnorm(mu[source],pop.invSig2);
+    p.exp.transform[source] <- exp(p.transform[source]);
   }  
+  p.mean.tot <- sum(p.exp.transform[]); 
    
-  ##generate individuals draws from the global mean
+  ####################################
+  ##this is the subpopulations means##
+  ####################################
+  subpop.invSig2 ~ dgamma(0.1,0.1)
+  subpop.var <- 1/subpop.invSig2
+  for(group in 1:num.groups) {
+    for(source in 1:num.sources) {
+      p.group.clr[group,source] ~ dnorm(p.transform[source], subpop.invSig2)
+      p.group.transform[group,source] <- exp(p.group.clr[group,source])
+    }
+    p.group.tot[group] <- sum(p.group.transform[group,]); 
+  }
+  
+  ##generate individuals draws from the group mean
   ind.invSig2 ~ dgamma(.1,.1)
   ind.var <- 1/ind.invSig2
-  for(i in 1:N) {
-    for(source in 1:num.sources) {
-      p.ind[i,source] ~ dnorm(p.transform[source], ind.invSig2);
-      exp.p[i,source] <- exp(p.ind[i,source]);
+  for(group in 1:num.groups) {
+    for(i in groupnum.mat[group,1]:groupnum.mat[group,2]) { 
+      for(source in 1:num.sources) {
+		p.ind[i,source] ~ dnorm(p.group.clr[group,source], ind.invSig2);
+		exp.p[i,source] <- exp(p.ind[i,source]);
+      }
     }
   }
     
   ##CLR math: This does the back-transform to get back to proportions
-  for(source in 1:num.sources) {
-    p.exp.transform[source] <- exp(p.transform[source]);
-  }
-  p.mean.tot <- sum(p.exp.transform[]);
   for(source in 1:(num.sources-1)) {
     p.pop[source] <- p.exp.transform[source]/p.mean.tot;
   }
   p.pop[num.sources] <- 1-sum(p.pop[1:(num.sources-1)]); 
   
-  ##rescale p.pop for concentration dependence
-  p.popdenom <- mu.conc%*%p.pop
-  for(iso in 1:num.iso) {
-    for(source in 1:num.sources) {
-      pIso.pop[iso,source]  <- mu.conc[iso,source]*p.pop[source]/p.popdenom[iso]
+  for(group in 1:num.groups) {
+    for(source in 1:(num.sources-1)) {
+      p.group[group,source] <- p.group.transform[group,source]/p.group.tot[group]
     }
+    p.group[group,num.sources] <- 1-sum(p.group[group,1:(num.sources-1)]); 
   }
-  
+    
   ##individual p's
   for(i in 1:N) {
     p.tot[i] <- sum(exp.p[i,1:num.sources]);
-      for(source in 1:(num.sources-1)) {
-    p[i,source] <- exp.p[i,source]/p.tot[i];
+    for(source in 1:(num.sources-1)) {
+	p[i,source] <- exp.p[i,source]/p.tot[i];
       }
     p[i,num.sources] <- 1-sum(p[i,1:(num.sources-1)]);
    
@@ -126,11 +132,12 @@ IsotopeRfull <- "model {
     p.inddenom[i,1:num.iso] <- mu.conc%*%p[i,]
     for(iso in 1:num.iso) {
       for(source in 1:num.sources) {
-        pIso.ind[i,iso,source]  <- mu.conc[iso,source]*p[i,source]/p.inddenom[i,iso]
+		pIso.ind[i,iso,source]	<- mu.conc[iso,source]*p[i,source]/p.inddenom[i,iso]
       }
     }
  }#end for i
-  
+
+
   #####################
   ##Source Estimation##
   #####################
@@ -139,12 +146,12 @@ IsotopeRfull <- "model {
    ##covariance matrix
     for(sourcex in 2:(num.iso)) {
       for(sourcey in 1:(sourcex-1)) {
-    tau.source.temp[sourcex,sourcey,source] <- 0
+		tau.source.temp[sourcex,sourcey,source] <- 0
       }
     }
     for(sourcey in 2:(num.iso)) {
       for(sourcex in 1:(sourcey-1)) {
-    tau.source.temp[sourcex,sourcey,source] <- 0
+		tau.source.temp[sourcex,sourcey,source] <- 0
       }
     }
     for(source2 in 1:num.iso) {
@@ -253,7 +260,7 @@ IsotopeRfull <- "model {
 }"
 
 
-IsotopeRnoconc <- "model {
+IsotopeRnoconcgroup <- "model {
 
   ##################################
   ##estimate the measurement error##
@@ -292,16 +299,33 @@ IsotopeRnoconc <- "model {
   ##Proportion estimamation##
   ###########################
   ## this is the global mean
-  for(i in 1:num.sources) {mu[i] ~ dnorm(alpha.clr[i], 0.001)} 
-  pop.invSig2 ~ dgamma(.01,.01)
-  pop.var <- 1/pop.invSig2
+  for(i in 1:num.sources) {mu[i] ~ dnorm(alpha.clr[i], 0.01);} 
+  pop.invSig2 ~ dgamma(.01, .01);
+  pop.var <- 1/pop.invSig2;
   for(source in 1:num.sources) {
-    p.transform[source] ~ dnorm(mu[source],pop.invSig2);
+    p.transform[source] ~ dnorm(mu[source], pop.invSig2);
   }  
-   
+
+	subpop.invSig2 ~ dgamma(0.1,0.1)
+    for(group in 1:num.groups) {
+		for(source in 1:num.sources) {
+			p.group.clr[group,source] ~ dnorm(p.transform[source], subpop.invSig2)
+			p.group.transform[group,source] <- exp(p.group.clr[group,source])
+		}
+    p.group.tot[group] <- sum(p.group.transform[group,]); 
+  }
+
+for(group in 1:num.groups) {
+    for(source in 1:(num.sources-1)) {
+      p.group[group,source] <- p.group.transform[group,source]/p.group.tot[group]
+    }
+    p.group[group,num.sources] <- 1-sum(p.group[group,1:(num.sources-1)]); 
+  }
+
+  
   ##generate individuals draws from the global mean
-  ind.invSig2 ~ dgamma(.01,.01)
-  ind.var <- 1/ind.invSig2
+  ind.invSig2 ~ dgamma(.01, .01);
+  ind.var <- 1/ind.invSig2;
   for(i in 1:N) {
     for(source in 1:num.sources) {
       p.ind[i,source] ~ dnorm(p.transform[source], ind.invSig2);
@@ -314,16 +338,17 @@ IsotopeRnoconc <- "model {
     p.exp.transform[source] <- exp(p.transform[source]);
   }
   p.mean.tot <- sum(p.exp.transform[]);
+  
   for(source in 1:(num.sources-1)) {
     p.pop[source] <- p.exp.transform[source]/p.mean.tot;
   }
   p.pop[num.sources] <- 1-sum(p.pop[1:(num.sources-1)]); 
   
   ##rescale p.pop for concentration dependence
-  p.popdenom <- mu.conc%*%p.pop
+  p.popdenom <- mu.conc%*%p.pop;
   for(iso in 1:num.iso) {
     for(source in 1:num.sources) {
-      pIso.pop[iso,source]  <- mu.conc[iso,source]*p.pop[source]/p.popdenom[iso]
+      pIso.pop[iso,source]  <- mu.conc[iso,source]*p.pop[source]/p.popdenom[iso];
     }
   }
   
@@ -468,7 +493,7 @@ IsotopeRnoconc <- "model {
 }"
 
 
-IsotopeRnoconcnodiscrim <- "model {
+IsotopeRnoconcnodiscrimgroup <- "model {
 
   ##################################
   ##estimate the measurement error##
@@ -507,16 +532,25 @@ IsotopeRnoconcnodiscrim <- "model {
   ##Proportion estimamation##
   ###########################
   ## this is the global mean
-  for(i in 1:num.sources) {mu[i] ~ dnorm(alpha.clr[i], 0.001)} 
-  pop.invSig2 ~ dgamma(.01,.01)
-  pop.var <- 1/pop.invSig2
+  for(i in 1:num.sources) {mu[i] ~ dnorm(alpha.clr[i], 0.01);} 
+  pop.invSig2 ~ dgamma(.01, .01);
+  pop.var <- 1/pop.invSig2;
   for(source in 1:num.sources) {
-    p.transform[source] ~ dnorm(mu[source],pop.invSig2);
+    p.transform[source] ~ dnorm(mu[source], pop.invSig2);
   }  
-   
+
+	subpop.invSig2 ~ dgamma(0.1,0.1)
+    for(group in 1:num.groups) {
+		for(source in 1:num.sources) {
+			p.group.clr[group,source] ~ dnorm(p.transform[source], subpop.invSig2)
+			p.group.transform[group,source] <- exp(p.group.clr[group,source])
+		}
+    p.group.tot[group] <- sum(p.group.transform[group,]); 
+  }
+  
   ##generate individuals draws from the global mean
-  ind.invSig2 ~ dgamma(.01,.01)
-  ind.var <- 1/ind.invSig2
+  ind.invSig2 ~ dgamma(.01, .01);
+  ind.var <- 1/ind.invSig2;
   for(i in 1:N) {
     for(source in 1:num.sources) {
       p.ind[i,source] ~ dnorm(p.transform[source], ind.invSig2);
@@ -529,16 +563,24 @@ IsotopeRnoconcnodiscrim <- "model {
     p.exp.transform[source] <- exp(p.transform[source]);
   }
   p.mean.tot <- sum(p.exp.transform[]);
+  
   for(source in 1:(num.sources-1)) {
     p.pop[source] <- p.exp.transform[source]/p.mean.tot;
   }
   p.pop[num.sources] <- 1-sum(p.pop[1:(num.sources-1)]); 
   
+  for(group in 1:num.groups) {
+    for(source in 1:(num.sources-1)) {
+      p.group[group,source] <- p.group.transform[group,source]/p.group.tot[group]
+    }
+    p.group[group,num.sources] <- 1-sum(p.group[group,1:(num.sources-1)]); 
+  }
+
   ##rescale p.pop for concentration dependence
-  p.popdenom <- mu.conc%*%p.pop
+  p.popdenom <- mu.conc%*%p.pop;
   for(iso in 1:num.iso) {
     for(source in 1:num.sources) {
-      pIso.pop[iso,source]  <- mu.conc[iso,source]*p.pop[source]/p.popdenom[iso]
+      pIso.pop[iso,source]  <- mu.conc[iso,source]*p.pop[source]/p.popdenom[iso];
     }
   }
   
@@ -682,7 +724,7 @@ IsotopeRnoconcnodiscrim <- "model {
 }"
 
 
-IsotopeRnoconc <- "model {
+IsotopeRnoconcgroup <- "model {
 
   ##################################
   ##estimate the measurement error##
@@ -721,16 +763,25 @@ IsotopeRnoconc <- "model {
   ##Proportion estimamation##
   ###########################
   ## this is the global mean
-  for(i in 1:num.sources) {mu[i] ~ dnorm(alpha.clr[i], 0.001)} 
-  pop.invSig2 ~ dgamma(.01,.01)
-  pop.var <- 1/pop.invSig2
+  for(i in 1:num.sources) {mu[i] ~ dnorm(alpha.clr[i], 0.01);} 
+  pop.invSig2 ~ dgamma(.01, .01);
+  pop.var <- 1/pop.invSig2;
   for(source in 1:num.sources) {
-    p.transform[source] ~ dnorm(mu[source],pop.invSig2);
+    p.transform[source] ~ dnorm(mu[source], pop.invSig2);
   }  
-   
+
+	subpop.invSig2 ~ dgamma(0.1,0.1)
+    for(group in 1:num.groups) {
+		for(source in 1:num.sources) {
+			p.group.clr[group,source] ~ dnorm(p.transform[source], subpop.invSig2)
+			p.group.transform[group,source] <- exp(p.group.clr[group,source])
+		}
+    p.group.tot[group] <- sum(p.group.transform[group,]); 
+  }
+  
   ##generate individuals draws from the global mean
-  ind.invSig2 ~ dgamma(.01,.01)
-  ind.var <- 1/ind.invSig2
+  ind.invSig2 ~ dgamma(.01, .01);
+  ind.var <- 1/ind.invSig2;
   for(i in 1:N) {
     for(source in 1:num.sources) {
       p.ind[i,source] ~ dnorm(p.transform[source], ind.invSig2);
@@ -743,16 +794,24 @@ IsotopeRnoconc <- "model {
     p.exp.transform[source] <- exp(p.transform[source]);
   }
   p.mean.tot <- sum(p.exp.transform[]);
+  
   for(source in 1:(num.sources-1)) {
     p.pop[source] <- p.exp.transform[source]/p.mean.tot;
   }
   p.pop[num.sources] <- 1-sum(p.pop[1:(num.sources-1)]); 
   
+  for(group in 1:num.groups) {
+    for(source in 1:(num.sources-1)) {
+      p.group[group,source] <- p.group.transform[group,source]/p.group.tot[group]
+    }
+    p.group[group,num.sources] <- 1-sum(p.group[group,1:(num.sources-1)]); 
+  }
+
   ##rescale p.pop for concentration dependence
-  p.popdenom <- mu.conc%*%p.pop
+  p.popdenom <- mu.conc%*%p.pop;
   for(iso in 1:num.iso) {
     for(source in 1:num.sources) {
-      pIso.pop[iso,source]  <- mu.conc[iso,source]*p.pop[source]/p.popdenom[iso]
+      pIso.pop[iso,source]  <- mu.conc[iso,source]*p.pop[source]/p.popdenom[iso];
     }
   }
   
@@ -896,7 +955,7 @@ IsotopeRnoconc <- "model {
 }"
 
 
-IsotopeRnoconcnodiscrim <- "model {
+IsotopeRnoconcnodiscrimgroup <- "model {
 
   ##################################
   ##estimate the measurement error##
@@ -935,16 +994,25 @@ IsotopeRnoconcnodiscrim <- "model {
   ##Proportion estimamation##
   ###########################
   ## this is the global mean
-  for(i in 1:num.sources) {mu[i] ~ dnorm(alpha.clr[i], 0.001)} 
-  pop.invSig2 ~ dgamma(.01,.01)
-  pop.var <- 1/pop.invSig2
+  for(i in 1:num.sources) {mu[i] ~ dnorm(alpha.clr[i], 0.01);} 
+  pop.invSig2 ~ dgamma(.01, .01);
+  pop.var <- 1/pop.invSig2;
   for(source in 1:num.sources) {
-    p.transform[source] ~ dnorm(mu[source],pop.invSig2);
+    p.transform[source] ~ dnorm(mu[source], pop.invSig2);
   }  
-   
+
+	subpop.invSig2 ~ dgamma(0.1,0.1)
+    for(group in 1:num.groups) {
+		for(source in 1:num.sources) {
+			p.group.clr[group,source] ~ dnorm(p.transform[source], subpop.invSig2)
+			p.group.transform[group,source] <- exp(p.group.clr[group,source])
+		}
+    p.group.tot[group] <- sum(p.group.transform[group,]); 
+  }
+  
   ##generate individuals draws from the global mean
-  ind.invSig2 ~ dgamma(.01,.01)
-  ind.var <- 1/ind.invSig2
+  ind.invSig2 ~ dgamma(.01, .01);
+  ind.var <- 1/ind.invSig2;
   for(i in 1:N) {
     for(source in 1:num.sources) {
       p.ind[i,source] ~ dnorm(p.transform[source], ind.invSig2);
@@ -957,16 +1025,24 @@ IsotopeRnoconcnodiscrim <- "model {
     p.exp.transform[source] <- exp(p.transform[source]);
   }
   p.mean.tot <- sum(p.exp.transform[]);
+  
   for(source in 1:(num.sources-1)) {
     p.pop[source] <- p.exp.transform[source]/p.mean.tot;
   }
   p.pop[num.sources] <- 1-sum(p.pop[1:(num.sources-1)]); 
   
+  for(group in 1:num.groups) {
+    for(source in 1:(num.sources-1)) {
+      p.group[group,source] <- p.group.transform[group,source]/p.group.tot[group]
+    }
+    p.group[group,num.sources] <- 1-sum(p.group[group,1:(num.sources-1)]); 
+  }
+
   ##rescale p.pop for concentration dependence
-  p.popdenom <- mu.conc%*%p.pop
+  p.popdenom <- mu.conc%*%p.pop;
   for(iso in 1:num.iso) {
     for(source in 1:num.sources) {
-      pIso.pop[iso,source]  <- mu.conc[iso,source]*p.pop[source]/p.popdenom[iso]
+      pIso.pop[iso,source]  <- mu.conc[iso,source]*p.pop[source]/p.popdenom[iso];
     }
   }
   
@@ -1110,7 +1186,7 @@ IsotopeRnoconcnodiscrim <- "model {
 }"
 
 
-IsotopeRnoconcnome <- "model {
+IsotopeRnoconcnomegroup <- "model {
     
   ###############################
   ##estimate the concentrations##
@@ -1126,16 +1202,25 @@ IsotopeRnoconcnome <- "model {
   ##Proportion estimamation##
   ###########################
   ## this is the global mean
-  for(i in 1:num.sources) {mu[i] ~ dnorm(alpha.clr[i], 0.001)} 
-  pop.invSig2 ~ dgamma(.01,.01)
-  pop.var <- 1/pop.invSig2
+  for(i in 1:num.sources) {mu[i] ~ dnorm(alpha.clr[i], 0.01);} 
+  pop.invSig2 ~ dgamma(.01, .01);
+  pop.var <- 1/pop.invSig2;
   for(source in 1:num.sources) {
-    p.transform[source] ~ dnorm(mu[source],pop.invSig2);
+    p.transform[source] ~ dnorm(mu[source], pop.invSig2);
   }  
-   
+
+	subpop.invSig2 ~ dgamma(0.1,0.1)
+    for(group in 1:num.groups) {
+		for(source in 1:num.sources) {
+			p.group.clr[group,source] ~ dnorm(p.transform[source], subpop.invSig2)
+			p.group.transform[group,source] <- exp(p.group.clr[group,source])
+		}
+    p.group.tot[group] <- sum(p.group.transform[group,]); 
+  }
+  
   ##generate individuals draws from the global mean
-  ind.invSig2 ~ dgamma(.01,.01)
-  ind.var <- 1/ind.invSig2
+  ind.invSig2 ~ dgamma(.01, .01);
+  ind.var <- 1/ind.invSig2;
   for(i in 1:N) {
     for(source in 1:num.sources) {
       p.ind[i,source] ~ dnorm(p.transform[source], ind.invSig2);
@@ -1148,16 +1233,24 @@ IsotopeRnoconcnome <- "model {
     p.exp.transform[source] <- exp(p.transform[source]);
   }
   p.mean.tot <- sum(p.exp.transform[]);
+  
   for(source in 1:(num.sources-1)) {
     p.pop[source] <- p.exp.transform[source]/p.mean.tot;
   }
   p.pop[num.sources] <- 1-sum(p.pop[1:(num.sources-1)]); 
   
+  for(group in 1:num.groups) {
+    for(source in 1:(num.sources-1)) {
+      p.group[group,source] <- p.group.transform[group,source]/p.group.tot[group]
+    }
+    p.group[group,num.sources] <- 1-sum(p.group[group,1:(num.sources-1)]); 
+  }
+
   ##rescale p.pop for concentration dependence
-  p.popdenom <- mu.conc%*%p.pop
+  p.popdenom <- mu.conc%*%p.pop;
   for(iso in 1:num.iso) {
     for(source in 1:num.sources) {
-      pIso.pop[iso,source]  <- mu.conc[iso,source]*p.pop[source]/p.popdenom[iso]
+      pIso.pop[iso,source]  <- mu.conc[iso,source]*p.pop[source]/p.popdenom[iso];
     }
   }
   
@@ -1300,7 +1393,8 @@ IsotopeRnoconcnome <- "model {
 
 }"
 
-IsotopeRnoconcnomenodiscrim <-  "model {
+
+IsotopeRnoconcnomenodiscrimgroup <-  "model {
 
 	for(source in 1:num.sources) {
       for(iso in 1:num.iso) {
@@ -1309,60 +1403,72 @@ IsotopeRnoconcnomenodiscrim <-  "model {
   }
   
   ###########################
-  ##Proportion estimamation##
+  ##Proportion estimation##
   ###########################
   ## this is the global mean
-  for(i in 1:num.sources) {mu[i] ~ dnorm(alpha.clr[i], 0.01);} 
-  pop.invSig2 ~ dgamma(.01, .01);
-  pop.var <- 1/pop.invSig2;
+  for(i in 1:num.sources) {mu[i] ~ dnorm(alpha.clr[i], 0.001)} 
+  pop.invSig2 ~ dgamma(.1,.1)
+  pop.var <- 1/pop.invSig2
   for(source in 1:num.sources) {
-    p.transform[source] ~ dnorm(mu[source], pop.invSig2);
+    p.transform[source] ~ dnorm(mu[source],pop.invSig2);
+    p.exp.transform[source] <- exp(p.transform[source]);
   }  
+  p.mean.tot <- sum(p.exp.transform[]); 
    
-  ##generate individuals draws from the global mean
-  ind.invSig2 ~ dgamma(.01, .01);
-  ind.var <- 1/ind.invSig2;
-  for(i in 1:N) {
+  ####################################
+  ##this is the subpopulations means##
+  ####################################
+  subpop.invSig2 ~ dgamma(0.1,0.1)
+  subpop.var <- 1/subpop.invSig2
+  for(group in 1:num.groups) {
     for(source in 1:num.sources) {
-      p.ind[i,source] ~ dnorm(p.transform[source], ind.invSig2);
-      exp.p[i,source] <- exp(p.ind[i,source]);
+      p.group.clr[group,source] ~ dnorm(p.transform[source], subpop.invSig2)
+      p.group.transform[group,source] <- exp(p.group.clr[group,source])
+    }
+    p.group.tot[group] <- sum(p.group.transform[group,]); 
+  }
+  
+  ##generate individuals draws from the group mean
+  ind.invSig2 ~ dgamma(.1,.1)
+  ind.var <- 1/ind.invSig2
+  for(group in 1:num.groups) {
+    for(i in groupnum.mat[group,1]:groupnum.mat[group,2]) { 
+      for(source in 1:num.sources) {
+		p.ind[i,source] ~ dnorm(p.group.clr[group,source], ind.invSig2);
+		exp.p[i,source] <- exp(p.ind[i,source]);
+      }
     }
   }
     
   ##CLR math: This does the back-transform to get back to proportions
-  for(source in 1:num.sources) {
-    p.exp.transform[source] <- exp(p.transform[source]);
-  }
-  p.mean.tot <- sum(p.exp.transform[]);
   for(source in 1:(num.sources-1)) {
     p.pop[source] <- p.exp.transform[source]/p.mean.tot;
   }
   p.pop[num.sources] <- 1-sum(p.pop[1:(num.sources-1)]); 
   
-  ##rescale p.pop for concentration dependence
-  p.popdenom <- mu.conc%*%p.pop;
-  for(iso in 1:num.iso) {
-    for(source in 1:num.sources) {
-      pIso.pop[iso,source]  <- mu.conc[iso,source]*p.pop[source]/p.popdenom[iso];
+  for(group in 1:num.groups) {
+    for(source in 1:(num.sources-1)) {
+      p.group[group,source] <- p.group.transform[group,source]/p.group.tot[group]
     }
+    p.group[group,num.sources] <- 1-sum(p.group[group,1:(num.sources-1)]); 
   }
-  
+    
   ##individual p's
   for(i in 1:N) {
     p.tot[i] <- sum(exp.p[i,1:num.sources]);
-      for(source in 1:(num.sources-1)) {
-		p[i,source] <- exp.p[i,source]/p.tot[i];
+    for(source in 1:(num.sources-1)) {
+	p[i,source] <- exp.p[i,source]/p.tot[i];
       }
     p[i,num.sources] <- 1-sum(p[i,1:(num.sources-1)]);
    
     ##rescale p.pop for concentration dependence
-    p.inddenom[i,1:num.iso] <- mu.conc%*%p[i,];
+    p.inddenom[i,1:num.iso] <- mu.conc%*%p[i,]
     for(iso in 1:num.iso) {
       for(source in 1:num.sources) {
-        pIso.ind[i,iso,source]  <- mu.conc[iso,source]*p[i,source]/p.inddenom[i,iso];
+		pIso.ind[i,iso,source]	<- mu.conc[iso,source]*p[i,source]/p.inddenom[i,iso]
       }
     }
-  }#end for i
+ }#end for i
   
   #####################
   ##Source Estimation##
@@ -1485,7 +1591,7 @@ IsotopeRnoconcnomenodiscrim <-  "model {
   }
 }"
 
-IsotopeRnodiscrim   <- "model {
+IsotopeRnodiscrimgroup   <- "model {
 
   ##################################
   ##estimate the measurement error##
@@ -1553,22 +1659,36 @@ IsotopeRnodiscrim   <- "model {
      }
 
   }
-  
-  
+    
   ###########################
   ##Proportion estimamation##
   ###########################
   ## this is the global mean
-  for(i in 1:num.sources) {mu[i] ~ dnorm(alpha.clr[i], 0.001)} 
-  pop.invSig2 ~ dgamma(.1,.1)
-  pop.var <- 1/pop.invSig2
+  for(i in 1:num.sources) {mu[i] ~ dnorm(alpha.clr[i], 0.01);} 
+  pop.invSig2 ~ dgamma(.01, .01);
+  pop.var <- 1/pop.invSig2;
   for(source in 1:num.sources) {
-    p.transform[source] ~ dnorm(mu[source],pop.invSig2);
+    p.transform[source] ~ dnorm(mu[source], pop.invSig2);
   }  
-   
+
+	subpop.invSig2 ~ dgamma(0.1,0.1)
+    for(group in 1:num.groups) {
+		for(source in 1:num.sources) {
+			p.group.clr[group,source] ~ dnorm(p.transform[source], subpop.invSig2)
+			p.group.transform[group,source] <- exp(p.group.clr[group,source])
+		}
+    p.group.tot[group] <- sum(p.group.transform[group,]); 
+  }
+  for(group in 1:num.groups) {
+    for(source in 1:(num.sources-1)) {
+      p.group[group,source] <- p.group.transform[group,source]/p.group.tot[group]
+    }
+    p.group[group,num.sources] <- 1-sum(p.group[group,1:(num.sources-1)]); 
+  }
+  
   ##generate individuals draws from the global mean
-  ind.invSig2 ~ dgamma(.1,.1)
-  ind.var <- 1/ind.invSig2
+  ind.invSig2 ~ dgamma(.01, .01);
+  ind.var <- 1/ind.invSig2;
   for(i in 1:N) {
     for(source in 1:num.sources) {
       p.ind[i,source] ~ dnorm(p.transform[source], ind.invSig2);
@@ -1581,19 +1701,21 @@ IsotopeRnodiscrim   <- "model {
     p.exp.transform[source] <- exp(p.transform[source]);
   }
   p.mean.tot <- sum(p.exp.transform[]);
+  
   for(source in 1:(num.sources-1)) {
     p.pop[source] <- p.exp.transform[source]/p.mean.tot;
   }
   p.pop[num.sources] <- 1-sum(p.pop[1:(num.sources-1)]); 
   
+
   ##rescale p.pop for concentration dependence
-  p.popdenom <- mu.conc%*%p.pop
+  p.popdenom <- mu.conc%*%p.pop;
   for(iso in 1:num.iso) {
     for(source in 1:num.sources) {
-      pIso.pop[iso,source]  <- mu.conc[iso,source]*p.pop[source]/p.popdenom[iso]
+      pIso.pop[iso,source]  <- mu.conc[iso,source]*p.pop[source]/p.popdenom[iso];
     }
   }
-  
+    
   ##individual p's
   for(i in 1:N) {
     p.tot[i] <- sum(exp.p[i,1:num.sources]);
@@ -1732,7 +1854,7 @@ IsotopeRnodiscrim   <- "model {
 }"
 
 
-IsotopeRnome <- "model {
+IsotopeRnomegroup <- "model {
 
   ##################################
   ##estimate the measurement error##
@@ -1796,16 +1918,25 @@ IsotopeRnome <- "model {
   ##Proportion estimamation##
   ###########################
   ## this is the global mean
-  for(i in 1:num.sources) {mu[i] ~ dnorm(alpha.clr[i], 0.001)} 
-  pop.invSig2 ~ dgamma(.01,.01)
-  pop.var <- 1/pop.invSig2
+  for(i in 1:num.sources) {mu[i] ~ dnorm(alpha.clr[i], 0.01);} 
+  pop.invSig2 ~ dgamma(.01, .01);
+  pop.var <- 1/pop.invSig2;
   for(source in 1:num.sources) {
-    p.transform[source] ~ dnorm(mu[source],pop.invSig2);
+    p.transform[source] ~ dnorm(mu[source], pop.invSig2);
   }  
-   
+
+	subpop.invSig2 ~ dgamma(0.1,0.1)
+    for(group in 1:num.groups) {
+		for(source in 1:num.sources) {
+			p.group.clr[group,source] ~ dnorm(p.transform[source], subpop.invSig2)
+			p.group.transform[group,source] <- exp(p.group.clr[group,source])
+		}
+    p.group.tot[group] <- sum(p.group.transform[group,]); 
+  }
+  
   ##generate individuals draws from the global mean
-  ind.invSig2 ~ dgamma(.01,.01)
-  ind.var <- 1/ind.invSig2
+  ind.invSig2 ~ dgamma(.01, .01);
+  ind.var <- 1/ind.invSig2;
   for(i in 1:N) {
     for(source in 1:num.sources) {
       p.ind[i,source] ~ dnorm(p.transform[source], ind.invSig2);
@@ -1818,16 +1949,24 @@ IsotopeRnome <- "model {
     p.exp.transform[source] <- exp(p.transform[source]);
   }
   p.mean.tot <- sum(p.exp.transform[]);
+  
   for(source in 1:(num.sources-1)) {
     p.pop[source] <- p.exp.transform[source]/p.mean.tot;
   }
   p.pop[num.sources] <- 1-sum(p.pop[1:(num.sources-1)]); 
   
+  for(group in 1:num.groups) {
+    for(source in 1:(num.sources-1)) {
+      p.group[group,source] <- p.group.transform[group,source]/p.group.tot[group]
+    }
+    p.group[group,num.sources] <- 1-sum(p.group[group,1:(num.sources-1)]); 
+  }
+
   ##rescale p.pop for concentration dependence
-  p.popdenom <- mu.conc%*%p.pop
+  p.popdenom <- mu.conc%*%p.pop;
   for(iso in 1:num.iso) {
     for(source in 1:num.sources) {
-      pIso.pop[iso,source]  <- mu.conc[iso,source]*p.pop[source]/p.popdenom[iso]
+      pIso.pop[iso,source]  <- mu.conc[iso,source]*p.pop[source]/p.popdenom[iso];
     }
   }
   
@@ -1971,7 +2110,7 @@ IsotopeRnome <- "model {
 }"
 
 
-IsotopeRnomenodiscrim <- "model {
+IsotopeRnomenodiscrimgroup <- "model {
     
   ###############################
   ##estimate the concentrations##
@@ -2022,16 +2161,32 @@ IsotopeRnomenodiscrim <- "model {
   ##Proportion estimamation##
   ###########################
   ## this is the global mean
-  for(i in 1:num.sources) {mu[i] ~ dnorm(alpha.clr[i], 0.001)} 
-  pop.invSig2 ~ dgamma(.01,.01)
-  pop.var <- 1/pop.invSig2
+  for(i in 1:num.sources) {mu[i] ~ dnorm(alpha.clr[i], 0.01);} 
+  pop.invSig2 ~ dgamma(.01, .01);
+  pop.var <- 1/pop.invSig2;
   for(source in 1:num.sources) {
-    p.transform[source] ~ dnorm(mu[source],pop.invSig2);
+    p.transform[source] ~ dnorm(mu[source], pop.invSig2);
   }  
-   
+
+	subpop.invSig2 ~ dgamma(0.1,0.1)
+    for(group in 1:num.groups) {
+		for(source in 1:num.sources) {
+			p.group.clr[group,source] ~ dnorm(p.transform[source], subpop.invSig2)
+			p.group.transform[group,source] <- exp(p.group.clr[group,source])
+		}
+    p.group.tot[group] <- sum(p.group.transform[group,]); 
+  }
+  
+  for(group in 1:num.groups) {
+    for(source in 1:(num.sources-1)) {
+      p.group[group,source] <- p.group.transform[group,source]/p.group.tot[group]
+    }
+    p.group[group,num.sources] <- 1-sum(p.group[group,1:(num.sources-1)]); 
+  }
+
   ##generate individuals draws from the global mean
-  ind.invSig2 ~ dgamma(.01,.01)
-  ind.var <- 1/ind.invSig2
+  ind.invSig2 ~ dgamma(.01, .01);
+  ind.var <- 1/ind.invSig2;
   for(i in 1:N) {
     for(source in 1:num.sources) {
       p.ind[i,source] ~ dnorm(p.transform[source], ind.invSig2);
@@ -2044,16 +2199,24 @@ IsotopeRnomenodiscrim <- "model {
     p.exp.transform[source] <- exp(p.transform[source]);
   }
   p.mean.tot <- sum(p.exp.transform[]);
+  
   for(source in 1:(num.sources-1)) {
     p.pop[source] <- p.exp.transform[source]/p.mean.tot;
   }
   p.pop[num.sources] <- 1-sum(p.pop[1:(num.sources-1)]); 
   
+  for(group in 1:num.groups) {
+    for(source in 1:(num.sources-1)) {
+      p.group[group,source] <- p.group.transform[group,source]/p.group.tot[group]
+    }
+    p.group[group,num.sources] <- 1-sum(p.group[group,1:(num.sources-1)]); 
+  }
+
   ##rescale p.pop for concentration dependence
-  p.popdenom <- mu.conc%*%p.pop
+  p.popdenom <- mu.conc%*%p.pop;
   for(iso in 1:num.iso) {
     for(source in 1:num.sources) {
-      pIso.pop[iso,source]  <- mu.conc[iso,source]*p.pop[source]/p.popdenom[iso]
+      pIso.pop[iso,source]  <- mu.conc[iso,source]*p.pop[source]/p.popdenom[iso];
     }
   }
   
