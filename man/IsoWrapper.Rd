@@ -5,11 +5,11 @@ IsoWrapper
 }
 
 \description{
-A wrapper function for IsotopeR. Used by IsotopeR to call the gui.
+A wrapper function for IsotopeR. Used to call the gui.
 }
 
 \usage{
-IsoWrapper(Mixtures = "Necessary File", Sources = "Necessary File", Concentrations = "Optional File", Measurement.Error = "Optional File", Discrimination.Error = "Optional File", Digestibility.Factor = "Optional File", output.name = "SampleOutput.Rdata", mcmc.chains = 3, mcmc.burn = 1000, mcmc.chainLength = 1000, mcmc.thin = 10, plot.mixing.observations = TRUE, plot.mixing.estimates = TRUE, plot.dietary.source.contributions = TRUE)
+IsoWrapper(Mixtures = "Necessary File", Sources = "Necessary File", Concentrations = "Optional File", Measurement.Error = "Optional File", Discrimination.Error = "Optional File", Digestibility.Factor = "Optional File", output.name = "SampleOutput.Rdata", mcmc.chains = 3, mcmc.burn = 1000, mcmc.chainLength = 1000, mcmc.thin = 10, plot.observations = TRUE, plot.mixing.estimates = TRUE, plot.dietary.source.contributions = TRUE, color.plots=TRUE)
 }
 \arguments{
   \item{Mixtures}{
@@ -42,7 +42,7 @@ The total number of iterations run per chain (includes burnin).
   \item{mcmc.thin}{
 Thinning rate. Reduces the sample size to every nth iteration.
 }
-  \item{plot.mixing.observations}{
+  \item{plot.observations}{
 This will make a plot of the mixing space, meaning the estimated sources and source concentrations, along with the mixture observations. If measurement error data is provided, the estimated 95 percent CI's will be displayed.
 }
   \item{plot.mixing.estimates}{
@@ -51,10 +51,11 @@ This will make a plot of the mixing space, meaning the estimated sources and sou
   \item{plot.dietary.source.contributions}{
 Plots the smoothed histograms of the population level diet estimates (black) along with individual level estimates (blue).
 }
+  \item{color.plots}{
+The flag defines whether plots should be made in color, or grayscale.
 }
-\author{
-Jake Ferguson
 }
+\author{Jake Ferguson}
 
 \seealso{
 \code{\link[siar]{siarmenu}}
