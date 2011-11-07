@@ -22,7 +22,7 @@ IsoWrapper <- function(Mixtures="Necessary File", Sources="Necessary File", Conc
     
     #reads in the files               
     X           <- try(as.matrix(read.table(Mixtures, sep='\t', header=TRUE)), silent=TRUE) #mixture data file
-    if(class(X) == 'try-error') {stop("Mixture file not found")}
+    if(class(X) == 'try-error') { stop("Mixture file not found") }
     if(dim(X)[2] == 1) {
         X           <- as.matrix(read.table(Mixtures, sep=',', header=TRUE)) #mixture data file
     }
@@ -291,8 +291,8 @@ IsoWrapper <- function(Mixtures="Necessary File", Sources="Necessary File", Conc
 	
 
     if(plot.observations) {
-		if(num.sources >= 3 & num.iso==2) {dev.new(); Tri.plots(jags.out, X, sources=sources, plot.ind=TRUE, me.flag=!nome.flag, color.plots=color.plots) } else {
-			if(num.sources == 2 & num.iso==2) {dev.new(); Bi.plots(jags.out, X, sources=sources, plot.ind=TRUE, me.flag=!nome.flag, color.plots=color.plots)} else {warning("No observation plot available for this number of isotopes", call.=FALSE) }
+		if(num.sources >= 3 & num.iso==2) {dev.new(); Tri.plots(jags.out, X, sources=sources, plot.ind.flag=TRUE, me.flag=!nome.flag, color.plots=color.plots) } else {
+			if(num.sources == 2 & num.iso==2) {dev.new(); Bi.plots(jags.out, X, sources=sources, plot.ind.flag=TRUE, me.flag=!nome.flag, color.plots=color.plots)} else {warning("No observation plot available for this number of isotopes", call.=FALSE) }
 		}
     }
     options(warn=0)
@@ -316,13 +316,13 @@ IsoWrapper <- function(Mixtures="Necessary File", Sources="Necessary File", Conc
 load.prev.func <- function(file.name="SampleOutput.Rdata", plot.observations=TRUE, plot.mixing.estimates=TRUE, plot.dietary.source.contributions=TRUE, color.plots=TRUE) {
 
 	jags.out=NA
-# 	X=NA
 	sources=NA
 	nome.flag=NA
-# 	num.iso=NA
 	num.sources=NA
 	mcmc.chains=NA
 	N=NA
+	X=NA
+	num.iso=NA
 	num.groups=NA
 	jags.output.mat=NA
 	load(file=file.name)
@@ -331,8 +331,8 @@ load.prev.func <- function(file.name="SampleOutput.Rdata", plot.observations=TRU
 	{stop(".Rdata file error")}
 	
 	if(plot.observations) {
-		if(num.sources >= 3 & num.iso==2) {dev.new(); Tri.plots(jags.out, X, sources=sources, plot.ind=TRUE, me.flag=!nome.flag, color.plots=color.plots) } else {
-			if(num.sources == 2 & num.iso==2) {dev.new(); Bi.plots(jags.out, X, sources=sources, plot.ind=TRUE, me.flag=!nome.flag, color.plots=color.plots)} else {warning("No observation plot available for this number of isotopes", call.=FALSE) }
+		if(num.sources >= 3 & num.iso==2) {dev.new(); Tri.plots(jags.out, X, sources=sources, plot.ind.flag=TRUE, me.flag=!nome.flag, color.plots=color.plots) } else {
+			if(num.sources == 2 & num.iso==2) {dev.new(); Bi.plots(jags.out, X, sources=sources, plot.ind.flag=TRUE, me.flag=!nome.flag, color.plots=color.plots)} else {warning("No observation plot available for this number of isotopes", call.=FALSE) }
 		}
 
 		# 		  if(num.iso==2) {dev.new(); Tri.plots(jags.out, X, sources=sources, plot.ind=TRUE, me.flag=!nome.flag, color.plots=color.plots) } 

@@ -7,7 +7,7 @@ Mixing Space, 3 sources
 3 source mixing space plot used to plot the source estimations and the observations or model fits.
 }
 \usage{
-Tri.plots(jags.1, X, sources=NA, plot.mix = FALSE, plot.ind.flag = FALSE, me.flag = FALSE, color.plots=TRUE)
+Tri.plots(jags.1, X, sources=NA, plot.mix = FALSE, plot.ind.flag = FALSE, me.flag = FALSE, color.plots=TRUE, xlab=NULL, ylab=NULL)
 }
 \arguments{
 \item{jags.1}{A jags object, output from the runjags package.}
@@ -17,6 +17,8 @@ Tri.plots(jags.1, X, sources=NA, plot.mix = FALSE, plot.ind.flag = FALSE, me.fla
 \item{plot.ind.flag}{Legacy argument, not currently used.}
 \item{me.flag}{Denotes wether to plot the measurement error along with observations.}
 \item{color.plots}{ Denotes whether plots should be color, or greyscale. The user does not have the ability to specify which colors should be used. }
+\item{xlab}{ A character vector for the x-axis label. If NULL the labels from the mixture file will be used. }
+\item{ylab}{ A character vector for the y-axis label. If NULL the labels from the mixture file will be used. }
 }
 \author{
 Jake Ferguson
