@@ -5,6 +5,10 @@ Known Issues:
 v0.4.2
 *allowed csv files with ';' seperators to be loaded.
 
+v0.4.2
+*fixed assumption that individual labels are consecutive. Note that reported values are still consecutive so it could be problematic to match individual labels to the IsotopeR output when nonconsecutive labels are used.
+*included dic calculation, but only when parallel.runs==FALSE.
+
 v0.4.1
 *fixed error in plotting  concentration dependence.
 *updated citations.

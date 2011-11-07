@@ -1,6 +1,6 @@
-2a4024085fbd5143daef2f95510ccdd4 *DESCRIPTION
+c09916b368202f2984bc72af62a12a7d *DESCRIPTION
 b5ecabfce1b0c304660064477c3865b1 *NAMESPACE
-72d3a0a44a4e1c15fd2ac92c38027d94 *NEWS
+fef8aaee8dee50fc73cf2aa74d70466d *NEWS
 5d7f2f84a77c8a9178ad400331759388 *R/Data_Example/Digest.csv
 e9fedef90cc7e9dd0c69df99261eb108 *R/Data_Example/DisfcrimSD.csv
 407afe3ceb89affdf819a7b095299c10 *R/Data_Example/MeasurementError.csv
@@ -12,12 +12,12 @@ a3545c41985ae0aeec6fc98f190ea3d5 *R/Data_Example/Sources.csv
 2110ba35035cdc8a95fbbd3ff013da9a *R/Data_Example/Sources4source.csv
 2ef84f9d963cf15dd258fff7750fb873 *R/IsotopeRModelsGroups.R
 ef7d1c8506f344a1fdb58a3119039a8b *R/IsotopeRModelsNoGroups.R
-a40ab53b2ed6e5caa94ae441852bfc07 *R/IsotopeRgui.R
+fa2d70e773426266383709670258a68b *R/IsotopeRgui.R
 c34c92d4f58dec6e60c4b1ccd90ad47f *R/Plot_jags.r
 f164d57d81bc63a916caa0be550986a3 *inst/doc/IsoScreen.png
-c67744833e2ff75bfe7452f75378b598 *inst/doc/IsotopeR.Rnw
+39a8ca9532546b4998028aac6b28edd7 *inst/doc/IsotopeR.Rnw
 6c8d0858a432582c754305404ef0a806 *inst/doc/IsotopeR.Rnw.backup
-f762cdb20d93d3f47adbb7711c1e87d4 *inst/doc/IsotopeR.pdf
+ff7fe8e7f046f2b65b6772ee7295c878 *inst/doc/IsotopeR.pdf
 2d16ceccb052e32758920dd1a5ca9679 *inst/doc/Screenshot-IsotopeR.eps
 2794c256e52d6356b0a60e9c6238ad32 *inst/doc/Screenshot-IsotopeR.png
 42b0b70932241151b15ab55ee1737e80 *inst/doc/Screenshot-Load_Previous_Run.eps
@@ -25,9 +25,9 @@ f762cdb20d93d3f47adbb7711c1e87d4 *inst/doc/IsotopeR.pdf
 fc1f182ffbaddaac50db485f40ee7cb4 *inst/doc/Screenshot-New_Run.eps
 235eb3663a6f2c9a3fb4eeb46e33c84e *inst/doc/Screenshot-New_Run.png
 ead0bb0ac18eae848c4e249f94666370 *man/Bi.plots.Rd
-0a7de9543b6ed09a7e6ea71f457333df *man/IsoWrapper.Rd
+d0b55094d41182e984472b6422a2338d *man/IsoWrapper.Rd
 75af17f6e270d8aa9dbea7a23610d49d *man/IsotopeR-package.Rd
-ce74b72531fee7ef138a819d5a0b6a10 *man/IsotopeR.Rd
+996bc450ddac590092806673ba006464 *man/IsotopeR.Rd
 606b3fda3394f2f3ad3eac5b5295201e *man/IsotopeRfull.Rd
 d9a3779d14aac72fdc7aab7897d365da *man/IsotopeRfullgroup.Rd
 fb975bad44c03be00decf0150a01adfb *man/IsotopeRnoconc.Rd

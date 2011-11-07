@@ -40,7 +40,7 @@ The length of the chain discarded at the beginning of the run.
 The total number of iterations run per chain (includes burnin).
 }
   \item{run.parallel}{
-	  This boolean flag determines whether the mcmc chains should be run in parallel (TRUE) or not (FALSE). Parallel chains requires that mcmc.chains is greater than 1 and that the machine running the mcmc has multiple cores.
+	  This boolean flag determines whether the mcmc chains should be run in parallel (TRUE) or not (FALSE). Parallel chains requires that mcmc.chains is greater than 1 and that the machine running the mcmc has multiple cores. Note that the Deviance Information Criterion (DIC) cannot be reported when using the parallel feature and so it is automatically turned off when this option is TRUE.
   }
   \item{mcmc.thin}{
 Thinning rate. Reduces the sample size to every nth iteration.
