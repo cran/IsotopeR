@@ -9,7 +9,7 @@ A wrapper function for IsotopeR. Used to call the gui.
 }
 
 \usage{
-IsoWrapper(Mixtures = "Necessary File", Sources = "Necessary File", Concentrations = "Optional File", Measurement.Error = "Optional File", Discrimination.Error = "Optional File", Digestibility.Factor = "Optional File", output.name = "SampleOutput.Rdata", mcmc.chains = 3, mcmc.burn = 1000, mcmc.chainLength = 1000, mcmc.thin = 10, plot.observations = TRUE, plot.mixing.estimates = TRUE, plot.dietary.source.contributions = TRUE, color.plots=TRUE)
+IsoWrapper(Mixtures = "Necessary File", Sources = "Necessary File", Concentrations = "Optional File", Measurement.Error = "Optional File", Discrimination.Error = "Optional File", Digestibility.Factor = "Optional File", output.name = "SampleOutput.Rdata", mcmc.chains = 3, mcmc.burn = 1000, mcmc.chainLength = 1000, mcmc.thin = 100, plot.observations = TRUE, plot.mixing.estimates = TRUE, plot.dietary.source.contributions = TRUE, color.plots=TRUE, run.parallel = TRUE)
 }
 \arguments{
   \item{Mixtures}{
@@ -39,6 +39,9 @@ The length of the chain discarded at the beginning of the run.
   \item{mcmc.chainLength}{
 The total number of iterations run per chain (includes burnin).
 }
+  \item{run.parallel}{
+	  This boolean flag determines whether the mcmc chains should be run in parallel (TRUE) or not (FALSE). Parallel chains requires that mcmc.chains is greater than 1 and that the machine running the mcmc has multiple cores.
+  }
   \item{mcmc.thin}{
 Thinning rate. Reduces the sample size to every nth iteration.
 }
@@ -52,7 +55,7 @@ This will make a plot of the mixing space, meaning the estimated sources and sou
 Plots the smoothed histograms of the population level diet estimates (black) along with individual level estimates (blue).
 }
   \item{color.plots}{
-The flag defines whether plots should be made in color, or grayscale.
+This boolean flag defines whether plots should be made in color (TRUE), or grayscale (FALSE).
 }
 }
 \author{Jake Ferguson}

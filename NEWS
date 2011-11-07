@@ -1,12 +1,21 @@
-Known Bugs
-*error when using more than 'n+1' sources under concentration dependence
+Known Issues:
+*Cannot estimate source correlation when more than 2 isotopes are estimated. This is due to computational issues in jags. For now source correlations are set to 0 when estimating more than 3 isotopes.
+*Cannot estimate diet contributions when only 1 isotope is used.
+
+v0.4
+*fixed concentration dependence calculation with 'n+1 sources'.
+*updated error messages when plot is unavailable to be more informative.
+*changed concentration precision prior from gamma to exponential distribution (with rate = 0.001). There was trouble inverting the matrix when the gamma distribution was used along with more than 3 sources. 
+*added the ability to do parallel chains on machines with multiple processors (needs to have more than 1 chain run to be useful). 
+*fixed the way range is determined in the diet source curves.
+*removed correlations when more than two isotopes are calculated.
+*updated vignette.
 
 v.0.3.1
 *fixed mislabeling of diet contribution curves that sometimes occurred
 *fixed mixing space x and y axis labels. labels are now read from data file.
 *increased the default spacing in mixture error plots so that ellipses will not be outside the axis ranges.
 *checked runs under R 2.14.0 and jags 3.1.0
-
 
 v.0.3
 *updated vignette to include an example analysis.
