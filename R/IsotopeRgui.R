@@ -32,7 +32,7 @@ IsoWrapper <- function(Mixtures="Necessary File", Sources="Necessary File", Conc
     if(dim(sources)[2] == 1) { 
         sources     <- (read.table(Sources,sep=',',header=TRUE)) #source data
     }
-    
+
     D   <- NA
     cd.mat <- NA
     subcd.vec <- NA
@@ -88,7 +88,7 @@ IsoWrapper <- function(Mixtures="Necessary File", Sources="Necessary File", Conc
     N       <- dim(X)[1] #number of individuals in the sample
     num.iso     <- dim(X)[2]-2 #number of isotopes in the sample
     num.sources <- nlevels(as.factor(sources[,num.iso+1]))
-	
+
 	num.groups <- nlevels(as.factor(X[,num.iso+1]))
 	groupnum.mat <- matrix(NA,num.groups,2)
 	for(i in 1:num.groups) {
@@ -97,7 +97,7 @@ IsoWrapper <- function(Mixtures="Necessary File", Sources="Necessary File", Conc
 	}
 	#determine the proper model to run
 
-    if(file.flag == "") { 
+	if(file.flag == "") { 
 		if(num.groups ==1) { curr.model <- IsotopeRfull} else {
 		curr.model <- IsotopeRfullgroup}
 	}
@@ -129,8 +129,6 @@ IsoWrapper <- function(Mixtures="Necessary File", Sources="Necessary File", Conc
 		if(num.groups == 1) { curr.model <- IsotopeRnomenodiscrim } else {
 		curr.model <- IsotopeRnomenodiscrimgroup }
 	}
-print(file.flag)
-print(num.groups)
 
 	#prior diet proportions
     alpha <- rep(1,num.sources)/num.sources
@@ -145,7 +143,7 @@ print(num.groups)
     
     #prior parameters for concentrations
     dmu.prior.tau <- diag(num.iso)*1/1000
-    dmu.prior.mu <- matrix(c(100,100),num.iso,num.sources)
+    dmu.prior.mu <- matrix(100,num.iso,num.sources)
 
     #population prior
     alpha.clr <- log(alpha/prod(alpha)^(1/length(alpha))) #transform onto CLR scale
@@ -193,14 +191,14 @@ print(num.groups)
         source.mat <- as.matrix(sources[,1:num.iso])
     
     #prior parameters for sources  
-    mu.prior.mu <- c(0, 0) #apply(sources[,1:num.iso], 2, mean)
+    mu.prior.mu <- rep(0,num.iso)#c(0, 0) #apply(sources[,1:num.iso], 2, mean)
     mu.prior.cov <- solve(diag(num.iso)*100) #source mean prior covariance matrix
     cd.array <- NA
     if(!noconc.flag) {
         #bu ild array of isotope concentrations and apply digestability
         
 #         if(class(D[,num.iso+1]) =='factor') {
-            cd.mat <- as.matrix(D[,1:num.iso])
+        cd.mat <- as.matrix(D[,1:num.iso])
 
          ##get array indices for the different subsource concentrations
 		subcd <- D[,num.iso+2]
@@ -276,8 +274,8 @@ print(num.groups)
 
 	#function used to initialize parameters
     jags.inits <- list( dmu.prior.mu=dmu.prior.mu, mu.prior.mu=mu.prior.mu, p.transform=runif(num.sources), region.sig=0.5, ind.sig=0.5, p.ind = matrix(runif(N*num.sources), N, num.sources) )
-
-	jags.out <- run.jags(model=curr.model, monitor=jags.params, data=jags.dump, n.chains=mcmc.chains, burnin=mcmc.burn, sample= mcmc.chainLength, thin=mcmc.thin, check.conv=TRUE, plots=FALSE, check.stochastic=FALSE,  monitor.deviance=FALSE, silent.jags=FALSE)
+# print(
+	jags.out <- run.jags(model=curr.model, monitor=jags.params, data=jags.dump, n.chains=mcmc.chains, burnin=mcmc.burn, sample= mcmc.chainLength, thin=mcmc.thin, check.conv=TRUE, plots=FALSE, check.stochastic=FALSE,  monitor.deviance=TRUE, silent.jags=FALSE)
 	
 	r.est <- jags.out$psrf$psrf[,1]
 	jags.output.mat <- cbind(jags.out$summary$statistics[,1:2], jags.out$summary$quantiles, r.est)
@@ -299,7 +297,7 @@ print(num.groups)
     
     if(plot.dietary.source.contributions) {
         dev.new()
-        curves.plot(jags.1=jags.out, num.sources=num.sources, num.chains=mcmc.chains, color=color.plots, individuals=N,  xlab.vec=unique(sources[,num.iso+1]), num.groups=num.groups)
+        curves.plot(jags.1=jags.out, num.sources=num.sources, num.chains=mcmc.chains, color=color.plots, individuals=N,  xlab.vec=levels(as.factor(sources[,num.iso+1])), num.groups=num.groups)
     }
 	print(jags.output.mat)
 
@@ -309,10 +307,10 @@ print(num.groups)
 load.prev.func <- function(file.name="SampleOutput.Rdata", plot.observations=TRUE, plot.mixing.estimates=TRUE, plot.dietary.source.contributions=TRUE, color.plots=TRUE) {
 
 	jags.out=NA
-	X=NA
+# 	X=NA
 	sources=NA
 	nome.flag=NA
-	num.iso=NA
+# 	num.iso=NA
 	num.sources=NA
 	mcmc.chains=NA
 	N=NA
@@ -328,13 +326,14 @@ load.prev.func <- function(file.name="SampleOutput.Rdata", plot.observations=TRU
 
     if(plot.mixing.estimates) {
         if(num.iso == 2 & num.sources==3) {dev.new(); Tri.plots(jags.1=jags.out, X=X, sources=sources, plot.mix=TRUE, me.flag=!nome.flag) } else {
-        if(num.iso == 2 & num.sources==2) {dev.new(); Bi.plots(jags.out, X,  sources=sources, plot.mix=TRUE, me.flag=!nome.flag) } else {warning("No mixing plot available for this isotope/source combination")}
+        if(num.iso == 2 & num.sources==2) {dev.new(); Bi.plots(jags.out, X,  sources=sources, plot.mix=TRUE, me.flag=!nome.flag) } else {warning("Warning: No mixing plot available for this isotope/source combination")}
         }    
     }
     
+ 
     if(plot.dietary.source.contributions) {
         dev.new()
-        curves.plot(jags.1=jags.out, num.sources=num.sources, num.chains=mcmc.chains, color=color.plots, individuals=N,  xlab.vec=unique(sources[,num.iso+1]), num.groups=num.groups)
+        curves.plot(jags.1=jags.out, num.sources=num.sources, num.chains=mcmc.chains, color=color.plots, individuals=N,  xlab.vec=levels(as.factor(sources[,num.iso+1])), num.groups=num.groups)
     }
     print(jags.output.mat)
 }

@@ -190,8 +190,12 @@ IsotopeRfull <- "model {
   ####################### 
   ##draw residual error##
   #######################
-  res.tau[1,2] <- 0;
-  res.tau[2,1] <- 0;
+  for(i in 1:(num.iso-1)) {
+	  for(j in (i+1):num.iso) {
+		res.tau[i,j] <- 0;
+		res.tau[j,i] <- 0;
+		}
+	}
   for(iso in 1:num.iso) {
     res.tau[iso,iso] ~ dgamma(1e-3,1e-3)#dexp(1/1000)#dunif(0,20)#dgamma(10,10)#dunif(0,20);#dexp(1);
   }
@@ -403,8 +407,12 @@ IsotopeRnoconc <- "model {
   ####################### 
   ##draw residual error##
   #######################
-  res.tau[1,2] <- 0;
-  res.tau[2,1] <- 0;
+  for(i in 1:(num.iso-1)) {
+	  for(j in (i+1):num.iso) {
+		res.tau[i,j] <- 0;
+		res.tau[j,i] <- 0;
+		}
+	}
   for(iso in 1:num.iso) {
     res.tau[iso,iso] ~ dgamma(1e-3,1e-3)#dexp(1/1000)#dunif(0,20)#dgamma(10,10)#dunif(0,20);#dexp(1);
   }
@@ -617,8 +625,12 @@ IsotopeRnoconcnodiscrim <- "model {
   ####################### 
   ##draw residual error##
   #######################
-  res.tau[1,2] <- 0;
-  res.tau[2,1] <- 0;
+  for(i in 1:(num.iso-1)) {
+	  for(j in (i+1):num.iso) {
+		res.tau[i,j] <- 0;
+		res.tau[j,i] <- 0;
+		}
+	}
   for(iso in 1:num.iso) {
     res.tau[iso,iso] ~ dgamma(1e-3,1e-3)#dexp(1/1000)#dunif(0,20)#dgamma(10,10)#dunif(0,20);#dexp(1);
   }
@@ -831,8 +843,12 @@ IsotopeRnoconc <- "model {
   ####################### 
   ##draw residual error##
   #######################
-  res.tau[1,2] <- 0;
-  res.tau[2,1] <- 0;
+  for(i in 1:(num.iso-1)) {
+	  for(j in (i+1):num.iso) {
+		res.tau[i,j] <- 0;
+		res.tau[j,i] <- 0;
+		}
+	}
   for(iso in 1:num.iso) {
     res.tau[iso,iso] ~ dgamma(1e-3,1e-3)#dexp(1/1000)#dunif(0,20)#dgamma(10,10)#dunif(0,20);#dexp(1);
   }
@@ -1045,8 +1061,12 @@ IsotopeRnoconcnodiscrim <- "model {
   ####################### 
   ##draw residual error##
   #######################
-  res.tau[1,2] <- 0;
-  res.tau[2,1] <- 0;
+  for(i in 1:(num.iso-1)) {
+	  for(j in (i+1):num.iso) {
+		res.tau[i,j] <- 0;
+		res.tau[j,i] <- 0;
+		}
+	}
   for(iso in 1:num.iso) {
     res.tau[iso,iso] ~ dgamma(1e-3,1e-3)#dexp(1/1000)#dunif(0,20)#dgamma(10,10)#dunif(0,20);#dexp(1);
   }
@@ -1236,8 +1256,12 @@ IsotopeRnoconcnome <- "model {
   ####################### 
   ##draw residual error##
   #######################
-  res.tau[1,2] <- 0;
-  res.tau[2,1] <- 0;
+  for(i in 1:(num.iso-1)) {
+	  for(j in (i+1):num.iso) {
+		res.tau[i,j] <- 0;
+		res.tau[j,i] <- 0;
+		}
+	}
   for(iso in 1:num.iso) {
     res.tau[iso,iso] ~ dgamma(1e-3,1e-3)#dexp(1/1000)#dunif(0,20)#dgamma(10,10)#dunif(0,20);#dexp(1);
   }
@@ -1365,9 +1389,9 @@ IsotopeRnoconcnomenodiscrim <-  "model {
     }
   }#end for i
   
-  #####################
-  ##Source Estimation##
-  #####################
+  ##################
+  ##Source Estimation####
+  ##################
   ##estimate sources
   for(source in 1:num.sources) { 
    ##covariance matrix
@@ -1424,8 +1448,12 @@ IsotopeRnoconcnomenodiscrim <-  "model {
   ####################### 
   ##draw residual error##
   #######################
-  res.tau[1,2] <- 0;
-  res.tau[2,1] <- 0;
+  for(i in 1:(num.iso-1)) {
+	  for(j in (i+1):num.iso) {
+		res.tau[i,j] <- 0;
+		res.tau[j,i] <- 0;
+		}
+	}
   for(iso in 1:num.iso) {
     res.tau[iso,iso] ~ dgamma(.01, .01);
   }
@@ -1670,9 +1698,13 @@ IsotopeRnodiscrim   <- "model {
   ####################### 
   ##draw residual error##
   #######################
-  res.tau[1,2] <- 0;
-  res.tau[2,1] <- 0;
-  for(iso in 1:num.iso) {
+    for(i in 1:(num.iso-1)) {
+	  for(j in (i+1):num.iso) {
+		res.tau[i,j] <- 0;
+		res.tau[j,i] <- 0;
+		}
+	}
+	for(iso in 1:num.iso) {
     res.tau[iso,iso] ~ dgamma(1e-3,1e-3)#dexp(1/1000)#dunif(0,20)#dgamma(10,10)#dunif(0,20);#dexp(1);
   }
   res.err[1:num.iso,1:num.iso] <- inverse(res.tau)
@@ -1907,8 +1939,12 @@ IsotopeRnome <- "model {
   ####################### 
   ##draw residual error##
   #######################
-  res.tau[1,2] <- 0;
-  res.tau[2,1] <- 0;
+  for(i in 1:(num.iso-1)) {
+	  for(j in (i+1):num.iso) {
+		res.tau[i,j] <- 0;
+		res.tau[j,i] <- 0;
+		}
+	}
   for(iso in 1:num.iso) {
     res.tau[iso,iso] ~ dgamma(1e-3,1e-3)#dexp(1/1000)#dunif(0,20)#dgamma(10,10)#dunif(0,20);#dexp(1);
   }
@@ -2134,8 +2170,12 @@ IsotopeRnomenodiscrim <- "model {
   ####################### 
   ##draw residual error##
   #######################
-  res.tau[1,2] <- 0;
-  res.tau[2,1] <- 0;
+  for(i in 1:(num.iso-1)) {
+	  for(j in (i+1):num.iso) {
+		res.tau[i,j] <- 0;
+		res.tau[j,i] <- 0;
+		}
+	}
   for(iso in 1:num.iso) {
     res.tau[iso,iso] ~ dgamma(1e-3,1e-3)#dexp(1/1000)#dunif(0,20)#dgamma(10,10)#dunif(0,20);#dexp(1);
   }

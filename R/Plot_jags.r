@@ -198,7 +198,8 @@ Tri.plots <- function(jags.1, X, sources=NA, plot.mix=FALSE,plot.ind.flag=FALSE,
 }
     
   if(!plot.ind.flag) {
-	    plotCI(x=x.points, y=y.points, liw=(x.sd), uiw=(x.sd), xlim=(range(x.points) + c(-1,1)*2*max(x.sd)), ylim=(range(y.points) + c(-1,1)*2*max(y.sd)), err="x",pch=19, xlab=expression(paste(delta^13,C)) , ylab=expression(paste(delta^15,N)),col="white")
+		
+	    plotCI(x=x.points, y=y.points, liw=(x.sd), uiw=(x.sd), xlim=(range(x.points) + c(-1,1)*2.5*max(x.sd)), ylim=(range(y.points) + c(-1,1)*2.5*max(y.sd)), err="x",pch=19, xlab=(dimnames(X)[[2]][1]), ylab=(dimnames(X)[[2]][2]), col="white")#expression(paste(delta^13,C)) , ylab=expression(paste(delta^15,N)),col="white")
 		plotCI(x=x.points, y=y.points, liw=(y.sd), uiw=(y.sd) ,err="y",add=TRUE,pch=19,col="white")
 		box(lwd=2)
 
@@ -263,15 +264,15 @@ Tri.plots <- function(jags.1, X, sources=NA, plot.mix=FALSE,plot.ind.flag=FALSE,
   
   ##plots predicted isotope values of individuals
   if(plot.mix ==TRUE) {
-    plotCI(x=mixmu.med[,1], y=mixmu.med[,2], liw=(mixmu.med[,1]-mixmu.loCI[,1]), uiw=(mixmu.hiCI[,1] - mixmu.med[,1]), err="x", xlab=expression(paste(delta,C[13])), add=TRUE, ylab=expression(paste(delta,N[15])), col='dimgrey', pch=19)
-    plotCI(x=mixmu.med[,1], y=mixmu.med[,2], liw=(mixmu.med[,2]-mixmu.loCI[,2]), uiw=(mixmu.hiCI[,2] - mixmu.med[,2]), err="y", xlab=expression(paste(delta,C[13])), add=TRUE, ylab=expression(paste(delta,N[15])), col='dimgrey', pch=19)
+    plotCI(x=mixmu.med[,1], y=mixmu.med[,2], liw=(mixmu.med[,1]-mixmu.loCI[,1]), uiw=(mixmu.hiCI[,1] - mixmu.med[,1]), err="x", add=TRUE, col='dimgrey', pch=19)
+    plotCI(x=mixmu.med[,1], y=mixmu.med[,2], liw=(mixmu.med[,2]-mixmu.loCI[,2]), uiw=(mixmu.hiCI[,2] - mixmu.med[,2]), err="y", , add=TRUE, col='dimgrey', pch=19)
     points(mixmu.med,lwd=2)
     title("Estimates")
   }
 
  ##Plots observed isotope values of individuals
     if(plot.ind.flag) {  
-		plotCI(x=x.points, y=y.points, liw=(x.sd), uiw=(x.sd), xlim=range(sources[,1]), ylim=range(sources[,2]), err="x",pch=19, xlab=expression(paste(delta^13,C)) , ylab=expression(paste(delta^15,N)),col="white")
+		plotCI(x=x.points, y=y.points, liw=(x.sd), uiw=(x.sd), xlim=range(c(sources[,1], X[,1])), ylim=range(c(sources[,2], X[,2])), err="x",pch=19, xlab=(dimnames(X)[[2]][1]), ylab=(dimnames(X)[[2]][2]), col="white")#xlab=expression(paste(delta^13,C)) , ylab=expression(paste(delta^15,N)),col="white")
 		plotCI(x=x.points, y=y.points, liw=(y.sd), uiw=(y.sd) ,err="y",add=TRUE,pch=19,col="white")
 		box(lwd=2)
 
@@ -283,8 +284,8 @@ Tri.plots <- function(jags.1, X, sources=NA, plot.mix=FALSE,plot.ind.flag=FALSE,
 			counter <- counter+1
 		}
         if(me.flag) {
-            plotCI(x=X[,1], y=X[,2], uiw = 2*sqrt(sigmaz.med[1]), err="x", xlab=expression(paste(delta,C[13])), add=TRUE, ylab=expression(paste(delta,N[15])), col='dimgrey', pch=19)
-            plotCI(x=X[,1], y=X[,2], uiw = 2*sqrt(sigmaz.med[2]), err="y", xlab=expression(paste(delta,C[13])), add=TRUE, ylab=expression(paste(delta,N[15])), col='dimgrey', pch=19)
+            plotCI(x=X[,1], y=X[,2], uiw = 2*sqrt(sigmaz.med[1]), err="x", add=TRUE, col='dimgrey', pch=19)
+            plotCI(x=X[,1], y=X[,2], uiw = 2*sqrt(sigmaz.med[2]), err="y", add=TRUE, col='dimgrey', pch=19)
         }
         points(X,pch=19,col="dimgrey")
         points(X,lwd=2)
@@ -293,7 +294,6 @@ Tri.plots <- function(jags.1, X, sources=NA, plot.mix=FALSE,plot.ind.flag=FALSE,
     }  
   
 }#end triplots
-
 
 
 ##################################
@@ -483,14 +483,14 @@ Bi.plots <- function(jags.1,X, sources=NA, plot.mix=FALSE,plot.ind.flag=FALSE, m
 
   if(!plot.ind.flag) {
 
-		plot(x=x.points, y=y.points, xlim=(range(x.points)+ c(-1,1)*2.2*x.sd), ylim=range(y.points)+  
-		c(-1,1)*2.2*y.sd,xlab=expression(paste(delta,C[13])), ylab=expression(paste(delta,N[15])), pch=c(19,19),col=c("white","white"))
+		plot(x=x.points, y=y.points, xlim=(range(x.points)+ c(-1,1)*2.5*x.sd), ylim=range(y.points)+  
+		c(-1,1)*2.5*y.sd, xlab=(dimnames(X)[[2]][1]), ylab=(dimnames(X)[[2]][2]), pch=c(19,19),col=c("white","white"))
 		points(x.basic,y.basic,type='l',lwd=2,col="grey")  
 		
 	box(lwd=2)
 	if(plot.mix ==TRUE) {
-		plotCI(x=mixmu.med[,1], y=mixmu.med[,2], liw=(mixmu.med[,1]-mixmu.loCI[,1]), uiw=(mixmu.hiCI[,1] - mixmu.med[,1]), err="x", xlab=expression(paste(delta,C[13])), add=TRUE, ylab=expression(paste(delta,N[15])), col=c("dimgrey"),pch=19)
-		plotCI(x=mixmu.med[,1], y=mixmu.med[,2], liw=(mixmu.med[,2]-mixmu.loCI[,2]), uiw=(mixmu.hiCI[,2] - mixmu.med[,2]), err="y", xlab=expression(paste(delta,C[13])), add=TRUE, ylab=expression(paste(delta,N[15])), col=c("dimgrey"),pch=19)
+		plotCI(x=mixmu.med[,1], y=mixmu.med[,2], liw=(mixmu.med[,1]-mixmu.loCI[,1]), uiw=(mixmu.hiCI[,1] - mixmu.med[,1]), err="x", add=TRUE, col=c("dimgrey"),pch=19)
+		plotCI(x=mixmu.med[,1], y=mixmu.med[,2], liw=(mixmu.med[,2]-mixmu.loCI[,2]), uiw=(mixmu.hiCI[,2] - mixmu.med[,2]), err="y", add=TRUE, col=c("dimgrey"),pch=19)
 		points(mixmu.med,lwd=2)
 		points(x=x.points, y=y.points, pch=c(15,15),col=c("black","black"))
 		
@@ -525,13 +525,13 @@ Bi.plots <- function(jags.1,X, sources=NA, plot.mix=FALSE,plot.ind.flag=FALSE, m
 
  ##Plots observed istope values of individuals
     if(plot.ind.flag) {  
-		plotCI(x=x.points, y=y.points, liw=(x.sd), uiw=(x.sd), xlim=range(sources[,1]), ylim=range(sources[,2]), err="x",pch=19, xlab=expression(paste(delta^13,C)) , ylab=expression(paste(delta^15,N)),col="white")
+		plotCI(x=x.points, y=y.points, liw=(x.sd), uiw=(x.sd), xlim=range(c(sources[,1],X[,1])), ylim=range(c(sources[,2],X[,2])), err="x",pch=19, xlab=(dimnames(X)[[2]][1]), ylab=(dimnames(X)[[2]][2]), col="white")
 		plotCI(x=x.points, y=y.points, liw=(y.sd), uiw=(y.sd) ,err="y",add=TRUE,pch=19,col="white")
 
 
         if(me.flag) {
-            plotCI(x=X[,1], y=X[,2], uiw=2*sqrt(sigmaz.med[1]), err="x", xlab=expression(paste(delta,C[13])), add=TRUE, ylab=expression(paste(delta,N[15])), col='dimgrey', pch=19)
-            plotCI(x=X[,1], y=X[,2], uiw=2*sqrt(sigmaz.med[2]), err="y", xlab=expression(paste(delta,C[13])), add=TRUE, ylab=expression(paste(delta,N[15])), col='dimgrey', pch=19)
+            plotCI(x=X[,1], y=X[,2], uiw=2*sqrt(sigmaz.med[1]), err="x", add=TRUE, col='dimgrey', pch=19)
+            plotCI(x=X[,1], y=X[,2], uiw=2*sqrt(sigmaz.med[2]), err="y", add=TRUE, col='dimgrey', pch=19)
         } #else {
 		points(X, col="dimgrey",pch=19)
 		points(X,lwd=2)
@@ -586,14 +586,9 @@ curves.plot <- function(jags.1, num.sources, num.chains, color=FALSE, individual
 	if(num.groups > 1) { p.group <- which(out.names== paste("p.group[",j,']',sep='') ) }
 	
     p1.popmed[j] <- output[p.pop, out.perc]
-
-
     pop.smooth <- density(mcmc.rbind[,p.pop], kernel="epanechnikov", from=0, to=1)
-#     if(color) { 
 		plot(pop.smooth, type='l', lwd=2, xlim=c(0,1), ylim=c(0,max(c(pop.smooth$y))*1.5), ylab="probability density", xlab=xlab.vec[j], main="", col="white") 
-# 	} else { 
-# 		plot(pop.smooth, type='l', lwd=2, col="black", xlim=c(0,1),ylim=c(0,max(c(pop.smooth$y))*1.5),ylab="probability density", xlab=xlab.vec[j], main="") 
-# 	}
+
 
     for(i in 2:individuals) {
         
@@ -611,15 +606,11 @@ curves.plot <- function(jags.1, num.sources, num.chains, color=FALSE, individual
 			temp.smooth <- density(mcmc.rbind[,p.group], kernel="epanechnikov", from=0, to=1)
 			
 			if(color) { lines(temp.smooth, type='l', lwd=1, col='black', lty=2) } else {
-# 			if(color) { lines(temp.smooth, type='l', lwd=2, col=source.collist[[j]][[i]], lty=2) } else {
 			lines(temp.smooth, type='l', lwd=1, col="black", lty=2)}    
 		}
 	
 	}
   
-#   if(min(pop.smooth$x) > 0.025) {pop.smooth$x <- c(0.025,pop.smooth$x); pop.smooth$y <- c(0,pop.smooth$y)}
-#   if(max(pop.smooth$x) < 0.975) {pop.smooth$x <- c(pop.smooth$x,0.975); pop.smooth$y <- c(pop.smooth$y,0)}
-#   lines(pop.smooth, type='l', lwd=2, col="black")
     if(color) { 
 		lines(pop.smooth, type='l', lwd=2, xlim=c(0,1), ylim=c(0,max(c(pop.smooth$y))*1.5), ylab="probability density", xlab=xlab.vec[j], main="", col=source.colvec[j]) 
 	} else { 

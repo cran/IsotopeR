@@ -1,5 +1,12 @@
 Known Bugs
-*error when using more than 'n+1' sources with concentration dependence
+*error when using more than 'n+1' sources under concentration dependence
+
+v.0.3.1
+*fixed mislabeling of diet contribution curves that sometimes occurred
+*fixed mixing space x and y axis labels. labels are now read from data file.
+*increased the default spacing in mixture error plots so that ellipses will not be outside the axis ranges.
+*checked runs under R 2.14.0 and jags 3.1.0
+
 
 v.0.3
 *updated vignette to include an example analysis.
