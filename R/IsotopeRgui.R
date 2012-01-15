@@ -4,7 +4,7 @@
 #see Hopkins and Ferguson 2011 for details on the model structure.
 #Jake Ferguson: last updated 7/1/11
 
-IsoWrapper <- function(Mixtures="Necessary File", Sources="Necessary File", Concentrations="Optional File", Measurement.Error="Optional File", Discrimination.Error="Optional File", Digestibility.Factor="Optional File", output.name="SampleOutput.Rdata", mcmc.chains=3, mcmc.burn=1e3, mcmc.chainLength=1e3, mcmc.thin=10, plot.observations=TRUE,  plot.mixing.estimates=TRUE, plot.dietary.source.contributions=TRUE, color.plots=TRUE) {
+IsoWrapper <- function(Mixtures="Necessary File", Sources="Necessary File", Concentrations="Optional File", Measurement.Error="Optional File", Discrimination.Error="Optional File", Digestibility.Factor="Optional File", output.name="SampleOutput.Rdata", mcmc.chains=3, mcmc.burn=1e3, mcmc.chainLength=1e3, mcmc.thin=100, plot.observations=TRUE,  plot.mixing.estimates=TRUE, plot.dietary.source.contributions=TRUE, color.plots=TRUE, run.parallel = TRUE) {
     require(runjags)
     
     mcmc.chainLength    <- as.integer(mcmc.chainLength+mcmc.burn) #total number of iterations per chain (includes burnin)
@@ -13,7 +13,7 @@ IsoWrapper <- function(Mixtures="Necessary File", Sources="Necessary File", Conc
     model.loc   <- "IsotopeR.txt" 
 
     #parameters to be returned by JAGS
-    jags.params <- c("mu.source", "sd.source", "rho.source", "mu.conc", "sd.conc", "mu.mix", "p", "p.pop", "sd.me","sd.res")
+    jags.params <- c("mu.source", "sd.source", "rho.mat", "mu.conc", "sd.conc", "mu.mix", "p", "p.pop", "sd.me","sd.res")
     file.flag <- ""
     noconc.flag = 0
     nome.flag = 0
@@ -83,14 +83,15 @@ IsoWrapper <- function(Mixtures="Necessary File", Sources="Necessary File", Conc
             digest      <- (read.table(Digestibility.Factor,sep=',',header=TRUE)) #file with digestion
         }
     }
-    
-    #extract useful info from the read in data to pass to JAGS
-    N       <- dim(X)[1] #number of individuals in the sample
-    num.iso     <- dim(X)[2]-2 #number of isotopes in the sample
-    num.sources <- nlevels(as.factor(sources[,num.iso+1]))
 
-	num.groups <- nlevels(as.factor(X[,num.iso+1]))
-	groupnum.mat <- matrix(NA,num.groups,2)
+    options(warn=-1)
+    #extract useful info from the read in data to pass to JAGS
+    N       				<- dim(X)[1] #number of individuals in the sample
+    num.iso     		<- dim(X)[2]-2 #number of isotopes in the sample
+    num.sources 	<- nlevels(as.factor(sources[,num.iso+1]))
+
+	num.groups 		<- nlevels(as.factor(X[,num.iso+1]))
+	groupnum.mat 	<- matrix(NA,num.groups,2)
 	for(i in 1:num.groups) {
 		groupnum.mat[i,1] <- min(which(X[,num.iso+1]==i))
 		groupnum.mat[i,2] <- max(which(X[,num.iso+1]==i))
@@ -98,36 +99,28 @@ IsoWrapper <- function(Mixtures="Necessary File", Sources="Necessary File", Conc
 	#determine the proper model to run
 
 	if(file.flag == "") { 
-		if(num.groups ==1) { curr.model <- IsotopeRfull} else {
-		curr.model <- IsotopeRfullgroup}
+		if(num.groups ==1) { curr.model <- IsotopeRfull} else {curr.model <- IsotopeRfullgroup}
 	}
     if(file.flag == "noconcnomenodiscrim") { 
-		if(num.groups ==1) { curr.model <- IsotopeRnoconcnomenodiscrim} else {
-		curr.model <- IsotopeRnoconcnomenodiscrimgroup}
+		if(num.groups ==1) { curr.model <- IsotopeRnoconcnomenodiscrim} else { curr.model <- IsotopeRnoconcnomenodiscrimgroup}
 	}
     if(file.flag == "noconc") { 
-		if(num.groups ==1) { curr.model <- IsotopeRnoconc } else {
-		curr.model <- IsotopeRnoconcnomenodiscrimgroup}
+		if(num.groups ==1) { curr.model <- IsotopeRnoconc } else { curr.model <- IsotopeRnoconcnomenodiscrimgroup}
 	}
     if(file.flag == "noconcnodiscrim") { 
-		if(num.groups ==1) { curr.model <- IsotopeRnoconcnodiscrim} else {
-			curr.model <- IsotopeRnoconcnodiscrimgroup}
+		if(num.groups ==1) { curr.model <- IsotopeRnoconcnodiscrim} else {curr.model <- IsotopeRnoconcnodiscrimgroup}
 	}
     if(file.flag == "noconcnome") { 
-		if(num.groups == 1) {curr.model <- IsotopeRnoconcnome} else {
-			curr.model <- IsotopeRnoconcnomegroup}
+		if(num.groups == 1) {curr.model <- IsotopeRnoconcnome} else {curr.model <- IsotopeRnoconcnomegroup}
 	}
     if(file.flag == "nodiscrim") { 
-		if(num.groups == 1) { curr.model <- IsotopeRnodiscrim } else {
-			curr.model <- IsotopeRnodiscrimgroup}
+		if(num.groups == 1) { curr.model <- IsotopeRnodiscrim } else {curr.model <- IsotopeRnodiscrimgroup}
 	}
     if(file.flag == "nome") { 
-		if(num.groups == 1) { curr.model <- IsotopeRnome } else {
-			curr.model <- IsotopeRnomegroup }
+		if(num.groups == 1) { curr.model <- IsotopeRnome } else {curr.model <- IsotopeRnomegroup }
 	}
     if(file.flag == "nomenodiscrim") { 
-		if(num.groups == 1) { curr.model <- IsotopeRnomenodiscrim } else {
-		curr.model <- IsotopeRnomenodiscrimgroup }
+		if(num.groups == 1) { curr.model <- IsotopeRnomenodiscrim } else {curr.model <- IsotopeRnomenodiscrimgroup }
 	}
 
 	#prior diet proportions
@@ -194,9 +187,9 @@ IsoWrapper <- function(Mixtures="Necessary File", Sources="Necessary File", Conc
     mu.prior.mu <- rep(0,num.iso)#c(0, 0) #apply(sources[,1:num.iso], 2, mean)
     mu.prior.cov <- solve(diag(num.iso)*100) #source mean prior covariance matrix
     cd.array <- NA
+
     if(!noconc.flag) {
         #bu ild array of isotope concentrations and apply digestability
-        
 #         if(class(D[,num.iso+1]) =='factor') {
         cd.mat <- as.matrix(D[,1:num.iso])
 
@@ -208,7 +201,7 @@ IsoWrapper <- function(Mixtures="Necessary File", Sources="Necessary File", Conc
 			subcd.vec[counter] <- nlevels(as.factor(D[which(D[,num.iso+1] == i), num.iso+2]))
 			counter <- counter+1
 		}
-		
+
 		subcd.samples <-array(NA, c(num.sources, max(subcd.vec), 2))
 		source.counter <- 1
 		for(i in levels(as.factor(D[,num.iso+1]))) {
@@ -227,24 +220,32 @@ IsoWrapper <- function(Mixtures="Necessary File", Sources="Necessary File", Conc
 
 	#builds discrimination variation matrices (added to estimators of the standard deviation in order to account for discrimination variation)
     discrimvar.mat <- NA
+
     if(!nodiscrim.flag) {
         discrim.var  <- (apply(discrim.sd[,-(num.iso+1)]^2,2, sum) )/dim(discrim.sd)[1]^2
         discrimvar.mat  <- diag(discrim.var)
     }
     #gets number of individual observations
-    num.inds <- nlevels(as.factor(X[,4]))
+	dim.x	<- dim(X)
+    num.inds <- nlevels(as.factor(X[,dim.x[2]]))
     ind.counts <- vector('numeric',num.inds)
     for(i in 1:num.inds) {
-        ind.counts[i] <- length(which(i == X[,4]))
+        ind.counts[i] <- length(which(i == X[,dim.x[2]]))
     }
     #individual observation matrix
+
     ind.array <- array(NA,c(num.iso,num.inds,max(ind.counts)))
     for(i in 1:num.inds) {
-        ind.array[1:num.iso,i,] <- t(X[which(X[,4]==i),1:num.iso])
+        ind.array[1:num.iso,i,] <- t(X[which(X[,dim.x[2]]==i), 1:num.iso])
     }
-    #individual observation id's
+
+# 	print(Tau.mat)
+# 	tau.mat	<- diag(num.iso)
+# 	tau.df		<- num.iso+100
+	rho.flag	<- ifelse(num.iso ==2, 1, 0)
+	#individual observation id's
     N <- num.inds
-   jags.dump <- list(muz=muz, ind.counts=ind.counts, ind.array=ind.array,N=N, num.sources=num.sources, num.iso=num.iso, Z=Z, dmu.prior.mu=dmu.prior.mu, Nz=Nz, mu.prior.mu=mu.prior.mu, mu.prior.cov=mu.prior.cov, dmu.prior.tau=dmu.prior.tau, alpha.clr=alpha.clr,  discrimvar.mat=discrimvar.mat, subsource.vec=subsource.vec, subsource.samples=subsource.samples, source.mat=source.mat, cd.mat = cd.mat, subcd.vec=subcd.vec, subcd.samples=subcd.samples, num.groups=num.groups, groupnum.mat=groupnum.mat)
+   jags.dump <- list(muz=muz, ind.counts=ind.counts, ind.array=ind.array,N=N, num.sources=num.sources, num.iso=num.iso, Z=Z, dmu.prior.mu=dmu.prior.mu, Nz=Nz, mu.prior.mu=mu.prior.mu, mu.prior.cov=mu.prior.cov, dmu.prior.tau=dmu.prior.tau, alpha.clr=alpha.clr,  discrimvar.mat=discrimvar.mat, subsource.vec=subsource.vec, subsource.samples=subsource.samples, source.mat=source.mat, cd.mat = cd.mat, subcd.vec=subcd.vec, subcd.samples=subcd.samples, num.groups=num.groups, groupnum.mat=groupnum.mat, rho.flag=rho.flag)
 
    if(noconc.flag) {
         jags.rem    <- which( names(jags.dump)  == 'cd.mat' |  names(jags.dump)  == 'dmu.prior.mu' |  names(jags.dump)  == 'dmu.prior.tau' |  names(jags.dump)  == 'subcd.samples' |  names(jags.dump)  == 'subcd.vec')
@@ -271,27 +272,35 @@ IsoWrapper <- function(Mixtures="Necessary File", Sources="Necessary File", Conc
 	} else {
 		jags.params <- c(jags.params,"p.group") 		
 	}
-
+	if(num.iso != 2) {
+		jags.rem 		<- which(jags.params == "rho.mat")
+		jags.params	<- jags.params[-jags.rem]
+	}
 	#function used to initialize parameters
     jags.inits <- list( dmu.prior.mu=dmu.prior.mu, mu.prior.mu=mu.prior.mu, p.transform=runif(num.sources), region.sig=0.5, ind.sig=0.5, p.ind = matrix(runif(N*num.sources), N, num.sources) )
-# print(
-	jags.out <- run.jags(model=curr.model, monitor=jags.params, data=jags.dump, n.chains=mcmc.chains, burnin=mcmc.burn, sample= mcmc.chainLength, thin=mcmc.thin, check.conv=TRUE, plots=FALSE, check.stochastic=FALSE,  monitor.deviance=TRUE, silent.jags=FALSE)
-	
+# print(curr.model)
+# print(file.flag)
+	if(run.parallel) {parallel.state <- "parallel"} else { parallel.state <- "interruptible"}
+	jags.out <- run.jags(model=curr.model, monitor=jags.params, data=jags.dump, n.chains=mcmc.chains, burnin=mcmc.burn, sample= (mcmc.chainLength-mcmc.burn), thin=mcmc.thin, psrf.target=1.5, check.conv=TRUE, plots=FALSE, check.stochastic=FALSE,  monitor.deviance=TRUE, silent.jags=FALSE, monitor.pd=FALSE, method=parallel.state)
+
 	r.est <- jags.out$psrf$psrf[,1]
 	jags.output.mat <- cbind(jags.out$summary$statistics[,1:2], jags.out$summary$quantiles, r.est)
     
 	save(jags.out, jags.output.mat, X, sources, nome.flag, num.sources, num.iso, mcmc.chains, N, num.groups, file=output.name)
-	
     write.table(jags.output.mat, file=paste(strsplit(output.name, ".Rdata")[[1]],'.txt',sep=''))
+	
+
     if(plot.observations) {
-        dev.new()
-		Tri.plots(jags.out, X, sources=sources, plot.ind=TRUE, me.flag=!nome.flag, color.plots=color.plots)
+		if(num.sources >= 3 & num.iso==2) {dev.new(); Tri.plots(jags.out, X, sources=sources, plot.ind=TRUE, me.flag=!nome.flag, color.plots=color.plots) } else {
+			if(num.sources == 2 & num.iso==2) {dev.new(); Bi.plots(jags.out, X, sources=sources, plot.ind=TRUE, me.flag=!nome.flag, color.plots=color.plots)} else {warning("No observation plot available for this number of isotopes", call.=FALSE) }
+		}
     }
+    options(warn=0)
 
     if(plot.mixing.estimates) {
         
         if(num.sources == 3 & num.iso==2) {dev.new(); Tri.plots(jags.1=jags.out, X=X, sources=sources, plot.mix=TRUE, me.flag=!nome.flag, color.plots=color.plots) } else {
-        if(num.sources == 2 & num.iso==2) {dev.new(); Bi.plots(jags.out, X,  sources=sources, plot.mix=TRUE, me.flag=!nome.flag, color.plots=color.plots) } else {warning("No plotting method available for isotope/source combination")}
+        if(num.sources == 2 & num.iso==2) {dev.new(); Bi.plots(jags.out, X,  sources=sources, plot.mix=TRUE, me.flag=!nome.flag, color.plots=color.plots) } else {warning("No mixing space plot available for isotope/source combination", call.=FALSE)}
         }    
     }
     
@@ -317,16 +326,21 @@ load.prev.func <- function(file.name="SampleOutput.Rdata", plot.observations=TRU
 	num.groups=NA
 	jags.output.mat=NA
 	load(file=file.name)
-	if(any(is.na(c(jags.out, X, sources, nome.flag, num.iso, num.sources, mcmc.chains, N, num.groups, jags.output.mat)))) {stop(".Rdata file error")}
+
+	if(!exists("jags.out") | !exists("X") | !exists("sources") | !exists("nome.flag") | !exists("num.iso") | !exists("num.sources") | !exists("mcmc.chains") | !exists("N") | !exists("num.groups") | !exists("jags.output.mat"))
+	{stop(".Rdata file error")}
 	
 	if(plot.observations) {
-		dev.new()
-		Tri.plots(jags.out, X, sources=sources, plot.ind=TRUE, me.flag=!nome.flag, color.plots=color.plots) 
+		if(num.sources >= 3 & num.iso==2) {dev.new(); Tri.plots(jags.out, X, sources=sources, plot.ind=TRUE, me.flag=!nome.flag, color.plots=color.plots) } else {
+			if(num.sources == 2 & num.iso==2) {dev.new(); Bi.plots(jags.out, X, sources=sources, plot.ind=TRUE, me.flag=!nome.flag, color.plots=color.plots)} else {warning("No observation plot available for this number of isotopes", call.=FALSE) }
+		}
+
+		# 		  if(num.iso==2) {dev.new(); Tri.plots(jags.out, X, sources=sources, plot.ind=TRUE, me.flag=!nome.flag, color.plots=color.plots) } 
     }
 
     if(plot.mixing.estimates) {
         if(num.iso == 2 & num.sources==3) {dev.new(); Tri.plots(jags.1=jags.out, X=X, sources=sources, plot.mix=TRUE, me.flag=!nome.flag) } else {
-        if(num.iso == 2 & num.sources==2) {dev.new(); Bi.plots(jags.out, X,  sources=sources, plot.mix=TRUE, me.flag=!nome.flag) } else {warning("Warning: No mixing plot available for this isotope/source combination")}
+        if(num.iso == 2 & num.sources==2) {dev.new(); Bi.plots(jags.out, X,  sources=sources, plot.mix=TRUE, me.flag=!nome.flag) } else {warning("Warning: No mixing plot available for this isotope/source combination", call.=FALSE)}
         }    
     }
     
@@ -336,22 +350,21 @@ load.prev.func <- function(file.name="SampleOutput.Rdata", plot.observations=TRU
         curves.plot(jags.1=jags.out, num.sources=num.sources, num.chains=mcmc.chains, color=color.plots, individuals=N,  xlab.vec=levels(as.factor(sources[,num.iso+1])), num.groups=num.groups)
     }
     print(jags.output.mat)
+	return(NULL)
 }
 
 IsotopeR    <- function() {
-    options(warn=-1) 
     require(fgui) #used to run JAGS from R
 
     if(interactive()) {
 		fguiWindow( basicMenu=FALSE, title="IsotopeR", text="Please choose an option from the Analysis menu." )
-		win <- mgui(IsoWrapper, argFilter = list(Mixtures="{{} {.csv}}", Sources="{{} {.csv}}", Concentrations="{{} {.csv}}", Measurement.Error="{{} {.csv}}",   Discrimination.Error="{{} {.csv}}", Digestibility.Factor="{{} {.csv}}"), argText = list(mcmc.chains="number of chains", mcmc.burn="MCMC burnin", mcmc.chainLength="MCMC runs", mcmc.thin="thinning rate", output.name="Output file"), argOption = list(plot.observations=c("TRUE","FALSE"), plot.dietary.source.contributions= c("TRUE", "FALSE"), plot.mixing.estimates=c('TRUE','FALSE'), color.plots=c("TRUE", "FALSE")), closeOnExec=TRUE, title=c("Analysis","New Run"), exec="Run IsotopeR", helpsFunc="IsoWrapper", output=NULL)
+		win <- mgui(IsoWrapper, argFilter = list(Mixtures="{{} {.csv}}", Sources="{{} {.csv}}", Concentrations="{{} {.csv}}", Measurement.Error="{{} {.csv}}",   Discrimination.Error="{{} {.csv}}", Digestibility.Factor="{{} {.csv}}"), argText = list(mcmc.chains="number of chains", mcmc.burn="MCMC burnin", mcmc.chainLength="MCMC runs", mcmc.thin="thinning rate", output.name="Output file"), argOption = list(run.parallel=c("TRUE", "FALSE"), plot.observations=c("TRUE","FALSE"), plot.dietary.source.contributions= c("TRUE", "FALSE"), plot.mixing.estimates=c('TRUE','FALSE'), color.plots=c("TRUE", "FALSE")), closeOnExec=TRUE, title=c("Analysis","New Run"), exec="Run IsotopeR", helpsFunc="IsoWrapper", output=NULL)
 		
 		win <- mgui(load.prev.func, title=c("Analysis","Load Previous Run"), argFilter= list(file.name="{{} {.Rdata}}"), argOption = list(plot.observations=c("TRUE","FALSE"), plot.dietary.source.contributions= c("TRUE", "FALSE"), plot.mixing.estimates=c('TRUE','FALSE'), color.plots=c("TRUE", "FALSE")), closeOnExec=TRUE , exec="Plot", output=NULL, helpsFunc="IsoWrapper")
 # 		print(win)
 		
     }
 
-    options(warn=0)
 
 }
 

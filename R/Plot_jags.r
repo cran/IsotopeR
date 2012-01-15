@@ -13,7 +13,7 @@ library(colorspace)
 Tri.plots <- function(jags.1, X, sources=NA, plot.mix=FALSE,plot.ind.flag=FALSE, me.flag=FALSE, color.plots=TRUE) {
 	require(ellipse)
 	require(plotrix)
-	
+
 	num.isos <- 2#this will always be true for these plots
 	num.ind <- dim(X)[1]
 	sources.levs <- levels(sources[,num.isos+1])
@@ -199,7 +199,8 @@ Tri.plots <- function(jags.1, X, sources=NA, plot.mix=FALSE,plot.ind.flag=FALSE,
     
   if(!plot.ind.flag) {
 		
-	    plotCI(x=x.points, y=y.points, liw=(x.sd), uiw=(x.sd), xlim=(range(x.points) + c(-1,1)*2.5*max(x.sd)), ylim=(range(y.points) + c(-1,1)*2.5*max(y.sd)), err="x",pch=19, xlab=(dimnames(X)[[2]][1]), ylab=(dimnames(X)[[2]][2]), col="white")#expression(paste(delta^13,C)) , ylab=expression(paste(delta^15,N)),col="white")
+	    plotCI(x=x.points, y=y.points, liw=(x.sd), uiw=(x.sd), xlim=(range(x.points) + c(-1,1)*2.5*max(x.sd)), ylim=(range(y.points) + c(-1,1)*2.5*max(y.sd)), err="x",pch=19, xlab=(dimnames(X)[[2]][1]), ylab=(dimnames(X)[[2]][2]), col="white")
+		
 		plotCI(x=x.points, y=y.points, liw=(y.sd), uiw=(y.sd) ,err="y",add=TRUE,pch=19,col="white")
 		box(lwd=2)
 
@@ -237,14 +238,15 @@ Tri.plots <- function(jags.1, X, sources=NA, plot.mix=FALSE,plot.ind.flag=FALSE,
 # 		points(x.points,y.points,pch=19,col="grey")
 		counter <- 1
 		for(levs in levels(sources[,3])) {
-			points(x.points[counter],y.points[counter],pch=14+counter,col="black",lwd=2)
-			counter <- counter + 1
+			if(color.plots) { points(x.points[counter],y.points[counter],pch=14+counter,col=source.collist[[counter]],lwd=2) } else {
+			points(x.points[counter],y.points[counter],pch=14+counter,col="black",lwd=2) }
+			counter <- counter + 1			
 		}
 		theta <- seq(0, 2 * pi, length=100)
 
-		rho.index <- grep("rho.source", jags.names[[1]])
+		rho.index <- grep("rho.mat", jags.names[[1]])
 		rho.vec <-jags.1$summary$statistics[rho.index,1]
-		
+		rho.vec <- rho.vec[4:6]
 		for(i in 1:3) {
 
 			T.mat <- diag(2)
@@ -304,14 +306,13 @@ Tri.plots <- function(jags.1, X, sources=NA, plot.mix=FALSE,plot.ind.flag=FALSE,
 ##plot.ind.flag is a 0,1 flag denoting whether to plot X
 ##################################
 Bi.plots <- function(jags.1,X, sources=NA, plot.mix=FALSE,plot.ind.flag=FALSE, me.flag=FALSE, color.plots=TRUE) {
-  
   require(ellipse)
   require(plotrix)
   
   N <- dim(X)[1]
 
 		num.isos <- 2#this should always be true for these plots
-		sources.levs <- levels(sources[,num.isos+1])
+		sources.levs <- levels(as.factor(sources[,num.isos+1]))
 		subsources <- sources[,num.isos+2]
 		source.cols <- vector('numeric', dim(sources)[1])
 
@@ -321,18 +322,19 @@ Bi.plots <- function(jags.1,X, sources=NA, plot.mix=FALSE,plot.ind.flag=FALSE, m
 		source.list <- list()
 		source.subs <- list()
 		source.collist <- list()
-		source.list[[1]] <- which(sources[,num.isos+1] == sources.levs[1])
-		source.subs[[1]] 	<- levels(as.factor(sources[source.list[[1]],num.isos+2]))
-		source.collist[[1]] <- sequential_hcl(length(source.subs[[1]]), h = 260, c = c(150, 10), l = c(30, 80), power = 1)
 
-		source.list[[2]] <- which(sources[,num.isos+1] == sources.levs[2])
+		source.list[[1]] 		<- which(as.factor(sources[,num.isos+1]) == sources.levs[1])
+		source.subs[[1]]	<- levels(as.factor(sources[source.list[[1]],num.isos+2]))
+		source.collist[[1]]	<- sequential_hcl(length(source.subs[[1]]), h = 260, c = c(150, 10), l = c(30, 80), power = 1)
+
+		source.list[[2]] 		<- which(as.factor(sources[,num.isos+1]) == sources.levs[2])
 		source.subs[[2]] 	<- levels(as.factor(sources[source.list[[2]],num.isos+2]))
-		source.collist[[2]] <- sequential_hcl(length(source.subs[[2]]), h = 5, c = c(200, 60), l = c(30, 90), power = 1)
+		source.collist[[2]] 	<- sequential_hcl(length(source.subs[[2]]), h = 5, c = c(200, 60), l = c(30, 90), power = 1)
 
 		for(index in 1:dim(sources)[1]) {
-			source <- which(sources[index, num.isos+1] == sources.levs)
-			subsource <- which(as.factor(sources[index, num.isos+2]) == source.subs[[source]])
-			source.cols[index] <- source.collist[[source]][[subsource]]
+			source 						<- which(as.factor(sources[index, num.isos+1]) == sources.levs)
+			subsource 					<- which(as.factor(sources[index, num.isos+2]) == source.subs[[source]])
+			source.cols[index]		<- source.collist[[source]][[subsource]]
 		}
 	} else { source.cols <- "black" }
 	jags.names <- dimnames(jags.1$summary$quantiles)
@@ -492,17 +494,17 @@ Bi.plots <- function(jags.1,X, sources=NA, plot.mix=FALSE,plot.ind.flag=FALSE, m
 		plotCI(x=mixmu.med[,1], y=mixmu.med[,2], liw=(mixmu.med[,1]-mixmu.loCI[,1]), uiw=(mixmu.hiCI[,1] - mixmu.med[,1]), err="x", add=TRUE, col=c("dimgrey"),pch=19)
 		plotCI(x=mixmu.med[,1], y=mixmu.med[,2], liw=(mixmu.med[,2]-mixmu.loCI[,2]), uiw=(mixmu.hiCI[,2] - mixmu.med[,2]), err="y", add=TRUE, col=c("dimgrey"),pch=19)
 		points(mixmu.med,lwd=2)
-		points(x=x.points, y=y.points, pch=c(15,15),col=c("black","black"))
+		if(color.plots) { points(x=x.points, y=y.points, pch=c(15,16),col=c(source.collist[[2]][1], source.collist[[1]][1])) } else { points(x=x.points, y=y.points, pch=c(15,16), col=c("black","black")) }
 		
 		title('Estimates')
 	}
 	
 	# 	rho.vec <- jags.1$BUGSoutput$mean$rho.source
-	rho.index <- grep("rho.source", jags.names[[1]])
+	rho.index <- grep("rho.mat", jags.names[[1]])
 	rho.vec <-jags.1$summary$statistics[rho.index,1]
+	rho.vec	<- rho.vec[3:4]
 
-	# 	theta <- seq(0, 2 * pi, length=100)
-		for(i in 1:2) {
+	for(i in 1:2) {
 			
 			T.mat <- diag(2)
 			T.mat[1,2] <- rho.vec[i]
@@ -537,8 +539,8 @@ Bi.plots <- function(jags.1,X, sources=NA, plot.mix=FALSE,plot.ind.flag=FALSE, m
 		points(X,lwd=2)
 		
     counter <- 0
-    for(levs in levels(sources[,3])) {
-			curr.lev <- which(sources[,3] == levs)
+    for(levs in levels(as.factor(sources[,3]))) {
+			curr.lev <- which(as.factor(sources[,3]) == levs)
 			if(color.plots) {points(sources[curr.lev,1], sources[curr.lev,2], pch=15+counter, cex=1, col=source.cols[curr.lev])} else {
 			points(sources[curr.lev,1], sources[curr.lev,2], pch=15+counter, cex=1, col="black")}
 			counter <- counter+1
@@ -556,7 +558,6 @@ Bi.plots <- function(jags.1,X, sources=NA, plot.mix=FALSE,plot.ind.flag=FALSE, m
 ##plots smoothed histograms of individual distributions
 #######################################################
 curves.plot <- function(jags.1, num.sources, num.chains, color=FALSE, individuals, xlab.vec, num.groups=1) {
-
   output <- jags.1$summary$quantiles
   out.mcmc <- jags.1$mcmc
     
@@ -579,43 +580,61 @@ curves.plot <- function(jags.1, num.sources, num.chains, color=FALSE, individual
 	h.vec <- seq(0,250, length.out=num.sources)
 	for(i in 1:num.sources) { source.colvec[i] <- sequential_hcl(1, h = h.vec[i], c = c(150, 10), l = c(30, 80), power = 1) }
 
-  for(j in 1:num.sources) {
+		pop.smooth.x	<- matrix(NA, num.sources, 512)
+		pop.smooth.y	<- matrix(NA, num.sources, 512)
 
-    p.ind <- which(out.names== paste("p[",1,',',j,']',sep='') )
-    p.pop <- which(out.names== paste("p.pop[",j,']',sep='') )
-	if(num.groups > 1) { p.group <- which(out.names== paste("p.group[",j,']',sep='') ) }
+		ind.smooth.x		<- list()
+		ind.smooth.y		<- list()
+
+		group.smooth.x	<- list()
+		group.smooth.y	<- group.smooth.x
 	
-    p1.popmed[j] <- output[p.pop, out.perc]
-    pop.smooth <- density(mcmc.rbind[,p.pop], kernel="epanechnikov", from=0, to=1)
-		plot(pop.smooth, type='l', lwd=2, xlim=c(0,1), ylim=c(0,max(c(pop.smooth$y))*1.5), ylab="probability density", xlab=xlab.vec[j], main="", col="white") 
+		for(j in 1:num.sources) {
 
-
-    for(i in 2:individuals) {
-        
-     p.ind <- which(out.names== paste("p[",i,',',j,']',sep='') )
-	 temp.smooth <- density(mcmc.rbind[,p.ind], kernel="epanechnikov", from=0, to=1)     
-     
-     if(color) { lines(temp.smooth, type='l', lwd=2, col='grey') } else {
-     lines(temp.smooth, type='l', lwd=1, col="grey")}    
-  }
-
-	if(num.groups > 1) {
-		for(i in 1:num.groups) {
-        
-			p.group <- which(out.names== paste("p.group[",i,',',j,']',sep='') )
-			temp.smooth <- density(mcmc.rbind[,p.group], kernel="epanechnikov", from=0, to=1)
+			p.ind <- which(out.names== paste("p[",1,',',j,']',sep='') )
+			p.pop <- which(out.names== paste("p.pop[",j,']',sep='') )
+			if(num.groups > 1) { p.group <- which(out.names== paste("p.group[",j,']',sep='') ) }
 			
-			if(color) { lines(temp.smooth, type='l', lwd=1, col='black', lty=2) } else {
-			lines(temp.smooth, type='l', lwd=1, col="black", lty=2)}    
-		}
+			p1.popmed[j] <- output[p.pop, out.perc]
+			temp <- density(mcmc.rbind[,p.pop], kernel="epanechnikov", from=0, to=1)
+			pop.smooth.x[j,]	<- temp$x
+			pop.smooth.y[j,]	<- temp$y
 	
-	}
+			ind.smooth.x[[j]]	<- matrix(NA, individuals, 512)
+			ind.smooth.y[[j]]	<- matrix(NA, individuals, 512)
+
+			for(i in 1:individuals) {
+				p.ind 							<- which(out.names== paste("p[",i,',',j,']',sep='') )
+				temp 							<- density(mcmc.rbind[,p.ind], kernel="epanechnikov", from=0, to=1)     
+				ind.smooth.x[[j]][i,]	<- temp$x
+				ind.smooth.y[[j]][i,]	<- temp$y
+			}
+
+			if(num.groups > 1) {
+				group.smooth.x[[j]]	<- matrix(NA, num.groups, 512)
+				group.smooth.y[[j]]	<- matrix(NA, num.groups, 512)
+				for(i in 1:num.groups) {
+					p.group 						<- which(out.names== paste("p.group[",i,',',j,']',sep='') )
+					temp.smooth 			<- density(mcmc.rbind[,p.group], kernel="epanechnikov", from=0, to=1)
+					group.smooth.x[[j]][i,]	<- temp.smooth$x
+					group.smooth.y[[j]][i,]	<- temp.smooth$y
+				}
+			}
+		}#end for
   
-    if(color) { 
-		lines(pop.smooth, type='l', lwd=2, xlim=c(0,1), ylim=c(0,max(c(pop.smooth$y))*1.5), ylab="probability density", xlab=xlab.vec[j], main="", col=source.colvec[j]) 
-	} else { 
-		lines(pop.smooth, type='l', lwd=2, col="black", xlim=c(0,1),ylim=c(0,max(c(pop.smooth$y))*1.5),ylab="probability density", xlab=xlab.vec[j], main="") 
+	for(i in 1:num.sources) {
+		plot(pop.smooth.x[i,], pop.smooth.y[i,], type='l', lwd=2, xlim=c(0,1), ylim=c(0,max(ind.smooth.y[[i]])), ylab="probability density", xlab=xlab.vec[i], main="", col="white")
+		for(j in 1:individuals) {
+			if(color) { lines(ind.smooth.x[[i]][j,], ind.smooth.y[[i]][j,], type='l', lwd=2, col='grey') } else {
+			lines(ind.smooth.x[[i]][j,], ind.smooth.y[[i]][j,], type='l', lwd=2, col="grey") }
+		}
+		lines(pop.smooth.x[i,], pop.smooth.y[i,], type='l', lwd=2,  ylab="probability density", xlab=xlab.vec[j], main="", col=source.colvec[i])
+			
+		if(num.groups > 1) {
+			for(j in 1:num.groups) {
+	 			if(color) { lines(group.smooth.x[[i]][j,], group.smooth.y[[i]][j,], type='l', lwd=1, col='black', lty=2) } else {
+					lines(group.smooth.x[[i]][j,], group.smooth.y[[i]][j,], type='l', lwd=1, col="black", lty=2)}    
+			}
+		}
 	}
-   
-  }#end for
 }#end curves.plot

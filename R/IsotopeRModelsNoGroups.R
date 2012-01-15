@@ -36,25 +36,17 @@ IsotopeRfull <- "model {
   ##covariance matrix
   for(sourcex in 2:(num.iso)) {
       for(sourcey in 1:(sourcex-1)) {
-        D.tau.temp[sourcex,sourcey,source] <- 0
+        D.tau[sourcex,sourcey,source] <- 0
       }
     }
     for(sourcey in 2:(num.iso)) {
       for(sourcex in 1:(sourcey-1)) {
-        D.tau.temp[sourcex,sourcey,source] <- 0
+        D.tau[sourcex,sourcey,source] <- 0
       }
-    }
-    
+    }    
     for(source2 in 1:num.iso) {
-      D.tau.temp[source2,source2,source] ~ dgamma(.001,.001)
+      D.tau[source2,source2,source] ~ dexp(0.001)#dgamma(0.001, 0.001)
     }
-  
-    D.tau[1:num.iso,1:num.iso,source] <- D.tau.temp[,,source]
-#     mu.conc[1:num.iso,source] ~ dmnorm(dmu.prior.mu[,source], dmu.prior.tau[,])
-      
-#     for(count in 1:cd.ss[source]) {
-#         cd.array[count,1:num.iso,source] ~ dmnorm(mu.conc[,source], D.tau[,,source])
-#     }
 
 
 	##draws subsource means and fits to data
@@ -63,7 +55,7 @@ IsotopeRfull <- "model {
 	}
 	
 	for(iso in 1:num.iso) {
-		mu.conc[iso, source] <- mean( subcd[source, 1:subcd.vec[source], iso])
+		mu.conc2[iso, source] <- mean( subcd[source, 1:subcd.vec[source], iso])
 	}
 		
 	for(sub in 1:subcd.vec[source]) {
@@ -107,10 +99,9 @@ IsotopeRfull <- "model {
   p.pop[num.sources] <- 1-sum(p.pop[1:(num.sources-1)]); 
   
   ##rescale p.pop for concentration dependence
-  p.popdenom <- mu.conc%*%p.pop
   for(iso in 1:num.iso) {
     for(source in 1:num.sources) {
-      pIso.pop[iso,source]  <- mu.conc[iso,source]*p.pop[source]/p.popdenom[iso]
+      pIso.pop[iso,source]  <- mu.conc2[iso,source]*p.pop[source]/sum(mu.conc2[iso,]*p.pop) #p.popdenom[iso]
     }
   }
   
@@ -123,10 +114,10 @@ IsotopeRfull <- "model {
     p[i,num.sources] <- 1-sum(p[i,1:(num.sources-1)]);
    
     ##rescale p.pop for concentration dependence
-    p.inddenom[i,1:num.iso] <- mu.conc%*%p[i,]
+    p.inddenom[i,1:num.iso] <- mu.conc2%*%p[i,]
     for(iso in 1:num.iso) {
       for(source in 1:num.sources) {
-        pIso.ind[i,iso,source]  <- mu.conc[iso,source]*p[i,source]/p.inddenom[i,iso]
+        pIso.ind[i,iso,source]  <- mu.conc2[iso,source]*p[i,source]/p.inddenom[i,iso]
       }
     }
  }#end for i
@@ -152,22 +143,27 @@ IsotopeRfull <- "model {
     }
        
     ##build source correlation matrix
-    rho.source[source] ~ dunif(-1,1)
+   for(sourcex in 1:num.iso) {
+      for(sourcey in 1:num.iso) {
+ 		  rho.source[sourcex,sourcey,source] ~ dunif(-0.99,0.99);
+		}
+    }
     for(sourcex in 2:(num.iso)) {
       for(sourcey in 1:(sourcex-1)) {
-        rho.mat[sourcex,sourcey,source] <- rho.source[source]
+        rho.mat[source, sourcex,sourcey] <- rho.source[sourcex, sourcey, source]*rho.flag*rho.flag
       }
     }
     for(sourcey in 2:(num.iso)) {
       for(sourcex in 1:(sourcey-1)) {
-        rho.mat[sourcex,sourcey,source] <- rho.source[source]
+        rho.mat[source,sourcex,sourcey] <- rho.mat[source, sourcey, sourcex];
       }
     }
     for(source2 in 1:num.iso) {
-      rho.mat[source2,source2,source] <- 1 
+      rho.mat[source,source2,source2] <- 1;
     }      
+
     cov.source[1:num.iso,1:num.iso,source] <- inverse(tau.source.temp[,,source])
-    tau.source[1:num.iso,1:num.iso,source] <- inverse((cov.source[,,source]%*%rho.mat[,,source]%*%cov.source[,,source]) +  cov.ME + discrimvar.mat )
+    tau.source[1:num.iso,1:num.iso,source] <- inverse((cov.source[,,source]%*%rho.mat[source,,]%*%cov.source[,,source]) +  cov.ME + discrimvar.mat )
  
     ##draws subsource means and fit to data
     for(sub in 1:subsource.vec[source]) { 
@@ -219,7 +215,7 @@ IsotopeRfull <- "model {
     }
       }
   
-      obscov.mat[1:num.iso,1:num.iso,source,i] <- (covfrac.source[,,source,i]%*%rho.mat[,,source]%*%covfrac.source[,,source,i] +  cov.ME + res.err)  
+      obscov.mat[1:num.iso,1:num.iso,source,i] <- (covfrac.source[,,source,i]%*%rho.mat[source,,]%*%covfrac.source[,,source,i] +  cov.ME + res.err)  
   
     }#end for source
 
@@ -240,11 +236,12 @@ IsotopeRfull <- "model {
     sd.me[iso] <- sqrt(cov.ME[iso,iso])
             
     for(source in 1:num.sources) {
-        sd.source[iso,source] <- sqrt(cov.source[iso,iso,source])
-        sd.conc[iso,source] <- 1/sqrt(D.tau[iso,iso,source])
+        sd.source[source,iso] <- sqrt(cov.source[iso,iso,source])
+        sd.conc[source,iso] <- 1/sqrt(D.tau[iso,iso,source])
     }
   }
 
+	mu.conc	<- t(mu.conc2)
 
   ##calculate the likelihoods for the N individuals.
   for(ind in 1:N) {
@@ -287,7 +284,7 @@ IsotopeRnoconc <- "model {
   ###############################
   for(source in 1:(num.sources)) {
       for(iso in 1:num.iso) {
-        mu.conc[iso,source] <- 1
+        mu.conc2[iso,source] <- 1
       }
   }
   
@@ -324,10 +321,9 @@ IsotopeRnoconc <- "model {
   p.pop[num.sources] <- 1-sum(p.pop[1:(num.sources-1)]); 
   
   ##rescale p.pop for concentration dependence
-  p.popdenom <- mu.conc%*%p.pop
   for(iso in 1:num.iso) {
     for(source in 1:num.sources) {
-      pIso.pop[iso,source]  <- mu.conc[iso,source]*p.pop[source]/p.popdenom[iso]
+      pIso.pop[iso,source]  <- mu.conc2[iso,source]*p.pop[source]/sum(mu.conc2[iso,]*p.pop) #p.popdenom[iso]
     }
   }
   
@@ -340,10 +336,10 @@ IsotopeRnoconc <- "model {
     p[i,num.sources] <- 1-sum(p[i,1:(num.sources-1)]);
    
     ##rescale p.pop for concentration dependence
-    p.inddenom[i,1:num.iso] <- mu.conc%*%p[i,]
+    p.inddenom[i,1:num.iso] <- mu.conc2%*%p[i,]
     for(iso in 1:num.iso) {
       for(source in 1:num.sources) {
-        pIso.ind[i,iso,source]  <- mu.conc[iso,source]*p[i,source]/p.inddenom[i,iso]
+        pIso.ind[i,iso,source]  <- mu.conc2[iso,source]*p[i,source]/p.inddenom[i,iso]
       }
     }
  }#end for i
@@ -369,22 +365,27 @@ IsotopeRnoconc <- "model {
     }
        
     ##build source correlation matrix
-    rho.source[source] ~ dunif(-1,1)
+   for(sourcex in 1:num.iso) {
+      for(sourcey in 1:num.iso) {
+ 		  rho.source[sourcex,sourcey,source] ~ dunif(-0.99,0.99);
+		}
+    }
     for(sourcex in 2:(num.iso)) {
       for(sourcey in 1:(sourcex-1)) {
-        rho.mat[sourcex,sourcey,source] <- rho.source[source]
+        rho.mat[source, sourcex,sourcey] <- rho.source[sourcex, sourcey, source]*rho.flag*rho.flag
       }
     }
     for(sourcey in 2:(num.iso)) {
       for(sourcex in 1:(sourcey-1)) {
-        rho.mat[sourcex,sourcey,source] <- rho.source[source]
+        rho.mat[source,sourcex,sourcey] <- rho.mat[source, sourcey, sourcex];
       }
     }
     for(source2 in 1:num.iso) {
-      rho.mat[source2,source2,source] <- 1 
+      rho.mat[source,source2,source2] <- 1;
     }      
+
     cov.source[1:num.iso,1:num.iso,source] <- inverse(tau.source.temp[,,source])
-    tau.source[1:num.iso,1:num.iso,source] <- inverse((cov.source[,,source]%*%rho.mat[,,source]%*%cov.source[,,source]) +  cov.ME + discrimvar.mat )
+    tau.source[1:num.iso,1:num.iso,source] <- inverse((cov.source[,,source]%*%rho.mat[source,,]%*%cov.source[,,source]) +  cov.ME + discrimvar.mat )
  
     ##draws subsource means and fit to data
     for(sub in 1:subsource.vec[source]) { 
@@ -436,7 +437,7 @@ IsotopeRnoconc <- "model {
     }
       }
   
-      obscov.mat[1:num.iso,1:num.iso,source,i] <- (covfrac.source[,,source,i]%*%rho.mat[,,source]%*%covfrac.source[,,source,i] +  cov.ME + res.err)  
+      obscov.mat[1:num.iso,1:num.iso,source,i] <- (covfrac.source[,,source,i]%*%rho.mat[source,,]%*%covfrac.source[,,source,i] +  cov.ME + res.err)  
   
     }#end for source
 
@@ -458,12 +459,13 @@ IsotopeRnoconc <- "model {
             
     for(source in 1:num.sources) {
 
-        sd.source[iso,source] <- sqrt(cov.source[iso,iso,source])
-#         sd.conc[iso,source] <- 1/sqrt(D.tau[iso,iso,source])
+        sd.source[source,iso] <- sqrt(cov.source[iso,iso,source])
+#         sd.conc[source,iso] <- 1/sqrt(D.tau[iso,iso,source])
 
     }
   }
 
+  mu.conc	<- t(mu.conc2)
 
   ##calculate the likelihoods for the N individuals.
   for(ind in 1:N) {
@@ -506,7 +508,7 @@ IsotopeRnoconcnodiscrim <- "model {
   ###############################
   for(source in 1:(num.sources)) {
       for(iso in 1:num.iso) {
-        mu.conc[iso,source] <- 1
+        mu.conc2[iso,source] <- 1
       }
   }
   
@@ -543,10 +545,9 @@ IsotopeRnoconcnodiscrim <- "model {
   p.pop[num.sources] <- 1-sum(p.pop[1:(num.sources-1)]); 
   
   ##rescale p.pop for concentration dependence
-  p.popdenom <- mu.conc%*%p.pop
   for(iso in 1:num.iso) {
     for(source in 1:num.sources) {
-      pIso.pop[iso,source]  <- mu.conc[iso,source]*p.pop[source]/p.popdenom[iso]
+      pIso.pop[iso,source]  <- mu.conc2[iso,source]*p.pop[source]/sum(mu.conc2[iso,]*p.pop) #p.popdenom[iso]
     }
   }
   
@@ -559,10 +560,10 @@ IsotopeRnoconcnodiscrim <- "model {
     p[i,num.sources] <- 1-sum(p[i,1:(num.sources-1)]);
    
     ##rescale p.pop for concentration dependence
-    p.inddenom[i,1:num.iso] <- mu.conc%*%p[i,]
+    p.inddenom[i,1:num.iso] <- mu.conc2%*%p[i,]
     for(iso in 1:num.iso) {
       for(source in 1:num.sources) {
-        pIso.ind[i,iso,source]  <- mu.conc[iso,source]*p[i,source]/p.inddenom[i,iso]
+        pIso.ind[i,iso,source]  <- mu.conc2[iso,source]*p[i,source]/p.inddenom[i,iso]
       }
     }
  }#end for i
@@ -588,22 +589,28 @@ IsotopeRnoconcnodiscrim <- "model {
     }
        
     ##build source correlation matrix
-    rho.source[source] ~ dunif(-1,1)
+    ##build source correlation matrix
+   for(sourcex in 1:num.iso) {
+      for(sourcey in 1:num.iso) {
+ 		  rho.source[sourcex,sourcey,source] ~ dunif(-0.99,0.99);
+		}
+    }
     for(sourcex in 2:(num.iso)) {
       for(sourcey in 1:(sourcex-1)) {
-        rho.mat[sourcex,sourcey,source] <- rho.source[source]
+        rho.mat[source, sourcex,sourcey] <- rho.source[sourcex, sourcey, source]*rho.flag*rho.flag
       }
     }
     for(sourcey in 2:(num.iso)) {
       for(sourcex in 1:(sourcey-1)) {
-        rho.mat[sourcex,sourcey,source] <- rho.source[source]
+        rho.mat[source,sourcex,sourcey] <- rho.mat[source, sourcey, sourcex];
       }
     }
     for(source2 in 1:num.iso) {
-      rho.mat[source2,source2,source] <- 1 
+      rho.mat[source,source2,source2] <- 1;
     }      
+
     cov.source[1:num.iso,1:num.iso,source] <- inverse(tau.source.temp[,,source])
-    tau.source[1:num.iso,1:num.iso,source] <- inverse((cov.source[,,source]%*%rho.mat[,,source]%*%cov.source[,,source]) +  cov.ME )
+    tau.source[1:num.iso,1:num.iso,source] <- inverse((cov.source[,,source]%*%rho.mat[source,,]%*%cov.source[,,source]) +  cov.ME )
  
     ##draws subsource means and fit to data
     for(sub in 1:subsource.vec[source]) { 
@@ -654,7 +661,7 @@ IsotopeRnoconcnodiscrim <- "model {
     }
       }
   
-      obscov.mat[1:num.iso,1:num.iso,source,i] <- (covfrac.source[,,source,i]%*%rho.mat[,,source]%*%covfrac.source[,,source,i] +  cov.ME + res.err)  
+      obscov.mat[1:num.iso,1:num.iso,source,i] <- (covfrac.source[,,source,i]%*%rho.mat[source,,]%*%covfrac.source[,,source,i] +  cov.ME + res.err)  
   
     }#end for source
 
@@ -676,12 +683,13 @@ IsotopeRnoconcnodiscrim <- "model {
             
     for(source in 1:num.sources) {
 
-        sd.source[iso,source] <- sqrt(cov.source[iso,iso,source])
-#         sd.conc[iso,source] <- 1/sqrt(D.tau[iso,iso,source])
+        sd.source[source,iso] <- sqrt(cov.source[iso,iso,source])
+#         sd.conc[source,iso] <- 1/sqrt(D.tau[iso,iso,source])
 
     }
   }
 
+  mu.conc	<- t(mu.conc2)
 
   ##calculate the likelihoods for the N individuals.
   for(ind in 1:N) {
@@ -724,7 +732,7 @@ IsotopeRnoconc <- "model {
   ###############################
   for(source in 1:(num.sources)) {
       for(iso in 1:num.iso) {
-        mu.conc[iso,source] <- 1
+        mu.conc2[iso,source] <- 1
       }
   }
   
@@ -761,10 +769,9 @@ IsotopeRnoconc <- "model {
   p.pop[num.sources] <- 1-sum(p.pop[1:(num.sources-1)]); 
   
   ##rescale p.pop for concentration dependence
-  p.popdenom <- mu.conc%*%p.pop
   for(iso in 1:num.iso) {
     for(source in 1:num.sources) {
-      pIso.pop[iso,source]  <- mu.conc[iso,source]*p.pop[source]/p.popdenom[iso]
+      pIso.pop[iso,source]  <- mu.conc2[iso,source]*p.pop[source]/sum(mu.conc2[iso,]*p.pop) #p.popdenom[iso]
     }
   }
   
@@ -777,10 +784,10 @@ IsotopeRnoconc <- "model {
     p[i,num.sources] <- 1-sum(p[i,1:(num.sources-1)]);
    
     ##rescale p.pop for concentration dependence
-    p.inddenom[i,1:num.iso] <- mu.conc%*%p[i,]
+    p.inddenom[i,1:num.iso] <- mu.conc2%*%p[i,]
     for(iso in 1:num.iso) {
       for(source in 1:num.sources) {
-        pIso.ind[i,iso,source]  <- mu.conc[iso,source]*p[i,source]/p.inddenom[i,iso]
+        pIso.ind[i,iso,source]  <- mu.conc2[iso,source]*p[i,source]/p.inddenom[i,iso]
       }
     }
  }#end for i
@@ -806,22 +813,28 @@ IsotopeRnoconc <- "model {
     }
        
     ##build source correlation matrix
-    rho.source[source] ~ dunif(-1,1)
+    ##build source correlation matrix
+   for(sourcex in 1:num.iso) {
+      for(sourcey in 1:num.iso) {
+ 		  rho.source[sourcex,sourcey,source] ~ dunif(-0.99,0.99);
+		}
+    }
     for(sourcex in 2:(num.iso)) {
       for(sourcey in 1:(sourcex-1)) {
-        rho.mat[sourcex,sourcey,source] <- rho.source[source]
+        rho.mat[source, sourcex,sourcey] <- rho.source[sourcex, sourcey, source]*rho.flag*rho.flag
       }
     }
     for(sourcey in 2:(num.iso)) {
       for(sourcex in 1:(sourcey-1)) {
-        rho.mat[sourcex,sourcey,source] <- rho.source[source]
+        rho.mat[source,sourcex,sourcey] <- rho.mat[source, sourcey, sourcex];
       }
     }
     for(source2 in 1:num.iso) {
-      rho.mat[source2,source2,source] <- 1 
+      rho.mat[source,source2,source2] <- 1;
     }      
+
     cov.source[1:num.iso,1:num.iso,source] <- inverse(tau.source.temp[,,source])
-    tau.source[1:num.iso,1:num.iso,source] <- inverse((cov.source[,,source]%*%rho.mat[,,source]%*%cov.source[,,source]) +  cov.ME + discrimvar.mat )
+    tau.source[1:num.iso,1:num.iso,source] <- inverse((cov.source[,,source]%*%rho.mat[source,,]%*%cov.source[,,source]) +  cov.ME + discrimvar.mat )
  
     ##draws subsource means and fit to data
     for(sub in 1:subsource.vec[source]) { 
@@ -872,7 +885,7 @@ IsotopeRnoconc <- "model {
     }
       }
   
-      obscov.mat[1:num.iso,1:num.iso,source,i] <- (covfrac.source[,,source,i]%*%rho.mat[,,source]%*%covfrac.source[,,source,i] +  cov.ME + res.err)  
+      obscov.mat[1:num.iso,1:num.iso,source,i] <- (covfrac.source[,,source,i]%*%rho.mat[source,,]%*%covfrac.source[,,source,i] +  cov.ME + res.err)  
   
     }#end for source
 
@@ -894,12 +907,13 @@ IsotopeRnoconc <- "model {
             
     for(source in 1:num.sources) {
 
-        sd.source[iso,source] <- sqrt(cov.source[iso,iso,source])
-#         sd.conc[iso,source] <- 1/sqrt(D.tau[iso,iso,source])
+        sd.source[source,iso] <- sqrt(cov.source[iso,iso,source])
+#         sd.conc[source,iso] <- 1/sqrt(D.tau[iso,iso,source])
 
     }
   }
 
+  mu.conc	<- t(mu.conc2)
 
   ##calculate the likelihoods for the N individuals.
   for(ind in 1:N) {
@@ -942,7 +956,7 @@ IsotopeRnoconcnodiscrim <- "model {
   ###############################
   for(source in 1:(num.sources)) {
       for(iso in 1:num.iso) {
-        mu.conc[iso,source] <- 1
+        mu.conc2[iso,source] <- 1
       }
   }
   
@@ -979,10 +993,9 @@ IsotopeRnoconcnodiscrim <- "model {
   p.pop[num.sources] <- 1-sum(p.pop[1:(num.sources-1)]); 
   
   ##rescale p.pop for concentration dependence
-  p.popdenom <- mu.conc%*%p.pop
   for(iso in 1:num.iso) {
     for(source in 1:num.sources) {
-      pIso.pop[iso,source]  <- mu.conc[iso,source]*p.pop[source]/p.popdenom[iso]
+      pIso.pop[iso,source]  <- mu.conc2[iso,source]*p.pop[source]/sum(mu.conc2[iso,]*p.pop) #p.popdenom[iso]
     }
   }
   
@@ -995,10 +1008,10 @@ IsotopeRnoconcnodiscrim <- "model {
     p[i,num.sources] <- 1-sum(p[i,1:(num.sources-1)]);
    
     ##rescale p.pop for concentration dependence
-    p.inddenom[i,1:num.iso] <- mu.conc%*%p[i,]
+    p.inddenom[i,1:num.iso] <- mu.conc2%*%p[i,]
     for(iso in 1:num.iso) {
       for(source in 1:num.sources) {
-        pIso.ind[i,iso,source]  <- mu.conc[iso,source]*p[i,source]/p.inddenom[i,iso]
+        pIso.ind[i,iso,source]  <- mu.conc2[iso,source]*p[i,source]/p.inddenom[i,iso]
       }
     }
  }#end for i
@@ -1024,22 +1037,28 @@ IsotopeRnoconcnodiscrim <- "model {
     }
        
     ##build source correlation matrix
-    rho.source[source] ~ dunif(-1,1)
+    ##build source correlation matrix
+   for(sourcex in 1:num.iso) {
+      for(sourcey in 1:num.iso) {
+ 		  rho.source[sourcex,sourcey,source] ~ dunif(-0.99,0.99);
+		}
+    }
     for(sourcex in 2:(num.iso)) {
       for(sourcey in 1:(sourcex-1)) {
-        rho.mat[sourcex,sourcey,source] <- rho.source[source]
+        rho.mat[source, sourcex,sourcey] <- rho.source[sourcex, sourcey, source]*rho.flag*rho.flag
       }
     }
     for(sourcey in 2:(num.iso)) {
       for(sourcex in 1:(sourcey-1)) {
-        rho.mat[sourcex,sourcey,source] <- rho.source[source]
+        rho.mat[source,sourcex,sourcey] <- rho.mat[source, sourcey, sourcex];
       }
     }
     for(source2 in 1:num.iso) {
-      rho.mat[source2,source2,source] <- 1 
+      rho.mat[source,source2,source2] <- 1;
     }      
+
     cov.source[1:num.iso,1:num.iso,source] <- inverse(tau.source.temp[,,source])
-    tau.source[1:num.iso,1:num.iso,source] <- inverse((cov.source[,,source]%*%rho.mat[,,source]%*%cov.source[,,source]) +  cov.ME )
+    tau.source[1:num.iso,1:num.iso,source] <- inverse((cov.source[,,source]%*%rho.mat[source,,]%*%cov.source[,,source]) +  cov.ME )
  
     ##draws subsource means and fit to data
     for(sub in 1:subsource.vec[source]) { 
@@ -1090,7 +1109,7 @@ IsotopeRnoconcnodiscrim <- "model {
     }
       }
   
-      obscov.mat[1:num.iso,1:num.iso,source,i] <- (covfrac.source[,,source,i]%*%rho.mat[,,source]%*%covfrac.source[,,source,i] +  cov.ME + res.err)  
+      obscov.mat[1:num.iso,1:num.iso,source,i] <- (covfrac.source[,,source,i]%*%rho.mat[source,,]%*%covfrac.source[,,source,i] +  cov.ME + res.err)  
   
     }#end for source
 
@@ -1112,12 +1131,13 @@ IsotopeRnoconcnodiscrim <- "model {
             
     for(source in 1:num.sources) {
 
-        sd.source[iso,source] <- sqrt(cov.source[iso,iso,source])
-#         sd.conc[iso,source] <- 1/sqrt(D.tau[iso,iso,source])
+        sd.source[source,iso] <- sqrt(cov.source[iso,iso,source])
+#         sd.conc[source,iso] <- 1/sqrt(D.tau[iso,iso,source])
 
     }
   }
 
+  mu.conc	<- t(mu.conc2)
 
   ##calculate the likelihoods for the N individuals.
   for(ind in 1:N) {
@@ -1137,7 +1157,7 @@ IsotopeRnoconcnome <- "model {
   ###############################
   for(source in 1:(num.sources)) {
       for(iso in 1:num.iso) {
-        mu.conc[iso,source] <- 1
+        mu.conc2[iso,source] <- 1
       }
   }
   
@@ -1174,10 +1194,9 @@ IsotopeRnoconcnome <- "model {
   p.pop[num.sources] <- 1-sum(p.pop[1:(num.sources-1)]); 
   
   ##rescale p.pop for concentration dependence
-  p.popdenom <- mu.conc%*%p.pop
   for(iso in 1:num.iso) {
     for(source in 1:num.sources) {
-      pIso.pop[iso,source]  <- mu.conc[iso,source]*p.pop[source]/p.popdenom[iso]
+      pIso.pop[iso,source]  <- mu.conc2[iso,source]*p.pop[source]/sum(mu.conc2[iso,]*p.pop) #p.popdenom[iso]
     }
   }
   
@@ -1190,10 +1209,10 @@ IsotopeRnoconcnome <- "model {
     p[i,num.sources] <- 1-sum(p[i,1:(num.sources-1)]);
    
     ##rescale p.pop for concentration dependence
-    p.inddenom[i,1:num.iso] <- mu.conc%*%p[i,]
+    p.inddenom[i,1:num.iso] <- mu.conc2%*%p[i,]
     for(iso in 1:num.iso) {
       for(source in 1:num.sources) {
-        pIso.ind[i,iso,source]  <- mu.conc[iso,source]*p[i,source]/p.inddenom[i,iso]
+        pIso.ind[i,iso,source]  <- mu.conc2[iso,source]*p[i,source]/p.inddenom[i,iso]
       }
     }
  }#end for i
@@ -1219,22 +1238,28 @@ IsotopeRnoconcnome <- "model {
     }
        
     ##build source correlation matrix
-    rho.source[source] ~ dunif(-1,1)
+    ##build source correlation matrix
+   for(sourcex in 1:num.iso) {
+      for(sourcey in 1:num.iso) {
+ 		  rho.source[sourcex,sourcey,source] ~ dunif(-0.99,0.99);
+		}
+    }
     for(sourcex in 2:(num.iso)) {
       for(sourcey in 1:(sourcex-1)) {
-        rho.mat[sourcex,sourcey,source] <- rho.source[source]
+        rho.mat[source, sourcex,sourcey] <- rho.source[sourcex, sourcey, source]*rho.flag*rho.flag
       }
     }
     for(sourcey in 2:(num.iso)) {
       for(sourcex in 1:(sourcey-1)) {
-        rho.mat[sourcex,sourcey,source] <- rho.source[source]
+        rho.mat[source,sourcex,sourcey] <- rho.mat[source, sourcey, sourcex];
       }
     }
     for(source2 in 1:num.iso) {
-      rho.mat[source2,source2,source] <- 1 
+      rho.mat[source,source2,source2] <- 1;
     }      
+
     cov.source[1:num.iso,1:num.iso,source] <- inverse(tau.source.temp[,,source])
-    tau.source[1:num.iso,1:num.iso,source] <- inverse((cov.source[,,source]%*%rho.mat[,,source]%*%cov.source[,,source])  + discrimvar.mat )
+    tau.source[1:num.iso,1:num.iso,source] <- inverse((cov.source[,,source]%*%rho.mat[source,,]%*%cov.source[,,source])  + discrimvar.mat )
  
     ##draws subsource means and fit to data
     for(sub in 1:subsource.vec[source]) { 
@@ -1285,7 +1310,7 @@ IsotopeRnoconcnome <- "model {
     }
       }
   
-      obscov.mat[1:num.iso,1:num.iso,source,i] <- (covfrac.source[,,source,i]%*%rho.mat[,,source]%*%covfrac.source[,,source,i] +  res.err)  
+      obscov.mat[1:num.iso,1:num.iso,source,i] <- (covfrac.source[,,source,i]%*%rho.mat[source,,]%*%covfrac.source[,,source,i] +  res.err)  
   
     }#end for source
 
@@ -1307,12 +1332,13 @@ IsotopeRnoconcnome <- "model {
             
     for(source in 1:num.sources) {
 
-        sd.source[iso,source] <- sqrt(cov.source[iso,iso,source])
-#         sd.conc[iso,source] <- 1/sqrt(D.tau[iso,iso,source])
+        sd.source[source,iso] <- sqrt(cov.source[iso,iso,source])
+#         sd.conc[source,iso] <- 1/sqrt(D.tau[iso,iso,source])
 
     }
   }
 
+  mu.conc	<- t(mu.conc2)
 
   ##calculate the likelihoods for the N individuals.
   for(ind in 1:N) {
@@ -1329,7 +1355,7 @@ IsotopeRnoconcnomenodiscrim <-  "model {
 
 	for(source in 1:num.sources) {
       for(iso in 1:num.iso) {
-        mu.conc[iso,source] <- 1
+        mu.conc2[iso,source] <- 1
       }
   }
   
@@ -1365,10 +1391,9 @@ IsotopeRnoconcnomenodiscrim <-  "model {
   p.pop[num.sources] <- 1-sum(p.pop[1:(num.sources-1)]); 
   
   ##rescale p.pop for concentration dependence
-  p.popdenom <- mu.conc%*%p.pop;
   for(iso in 1:num.iso) {
     for(source in 1:num.sources) {
-      pIso.pop[iso,source]  <- mu.conc[iso,source]*p.pop[source]/p.popdenom[iso];
+      pIso.pop[iso,source]  <- mu.conc2[iso,source]*p.pop[source]/sum(mu.conc2[iso,]*p.pop) #p.popdenom[iso]
     }
   }
   
@@ -1381,10 +1406,10 @@ IsotopeRnoconcnomenodiscrim <-  "model {
     p[i,num.sources] <- 1-sum(p[i,1:(num.sources-1)]);
    
     ##rescale p.pop for concentration dependence
-    p.inddenom[i,1:num.iso] <- mu.conc%*%p[i,];
+    p.inddenom[i,1:num.iso] <- mu.conc2%*%p[i,];
     for(iso in 1:num.iso) {
       for(source in 1:num.sources) {
-        pIso.ind[i,iso,source]  <- mu.conc[iso,source]*p[i,source]/p.inddenom[i,iso];
+        pIso.ind[i,iso,source]  <- mu.conc2[iso,source]*p[i,source]/p.inddenom[i,iso];
       }
     }
   }#end for i
@@ -1410,22 +1435,38 @@ IsotopeRnoconcnomenodiscrim <-  "model {
     }
        
     ##build source correlation matrix
-    rho.source[source] ~ dunif(-1,1);
-    for(sourcex in 2:(num.iso)) {
-      for(sourcey in 1:(sourcex-1)) {
-        rho.mat[sourcex,sourcey,source] <- rho.source[source]
-      }
+# 	rho.draw	[1:num.iso, 1:num.iso, source] ~ dwish(tau.mat, tau.df)
+# 	temp.inverse[1:num.iso,1:num.iso,source]	<- inverse(rho.draw[,,source])
+			
+#     for(sourcex in 1:num.iso) {
+# 		for(sourcey in 1:num.iso) {
+# # 			temp[sourcex, sourcey, source] <- temp.inverse[sourcex,sourcey,source]/(temp.inverse[sourcex,sourcex,source]*temp.inverse[sourcey,sourcey,source])
+# 		}
+#     }	
+	
+   for(sourcex in 1:num.iso) {
+		for(sourcey in 1:num.iso) {
+			temp[sourcex,sourcey,source]  ~ dunif(-0.99, 0.99);
+# 			rho.source[sourcex, sourcey, source] <-  temp[sourcex, sourcey, source]^((num.iso-1)*100) #ifelse(num.iso <=2, temp[sourcex, sourcey, source], 0)
+		}
+    }	
+	for(sourcex in 2:(num.iso)) {
+		for(sourcey in 1:(sourcex-1)) {
+			rho.mat[source, sourcex,sourcey] <- temp[sourcex, sourcey, source]*rho.flag
+		}
     }
     for(sourcey in 2:(num.iso)) {
       for(sourcex in 1:(sourcey-1)) {
-        rho.mat[sourcex,sourcey,source] <- rho.source[source];
+        rho.mat[source,sourcex,sourcey] <- rho.mat[source, sourcey, sourcex]
       }
     }
     for(source2 in 1:num.iso) {
-      rho.mat[source2,source2,source] <- 1;
+      rho.mat[source,source2,source2] <- 1;
     }      
-    cov.source[1:num.iso,1:num.iso,source] <- inverse(tau.source.temp[,,source]);
-    tau.source[1:num.iso,1:num.iso,source] <- inverse((cov.source[,,source]%*%rho.mat[,,source]%*%cov.source[,,source])  ); #+ discrimvar.mat )
+
+	
+    cov.source[1:num.iso,1:num.iso,source] 		<- inverse(tau.source.temp[,,source]);
+    tau.source[1:num.iso,1:num.iso,source] 		<- inverse((cov.source[,,source]%*%rho.mat[source,,]%*%cov.source[,,source])  ); #+ discrimvar.mat )
  
     ##draws subsource means and fit to data
     for(sub in 1:subsource.vec[source]) { 
@@ -1477,7 +1518,7 @@ IsotopeRnoconcnomenodiscrim <-  "model {
     }
       }
   
-      obscov.mat[1:num.iso,1:num.iso,source,i] <- (covfrac.source[,,source,i]%*%rho.mat[,,source]%*%covfrac.source[,,source,i] +  res.err);
+      obscov.mat[1:num.iso,1:num.iso,source,i] <- (covfrac.source[,,source,i]%*%rho.mat[source,,]%*%covfrac.source[,,source,i] +  res.err);
   
     }#end for source
 
@@ -1499,11 +1540,12 @@ IsotopeRnoconcnomenodiscrim <-  "model {
             
     for(source in 1:num.sources) {
 
-        sd.source[iso,source] <- sqrt(cov.source[iso,iso,source]);
+        sd.source[source,iso] <- sqrt(cov.source[iso,iso,source]);
 
     }
   }
 
+  mu.conc	<- t(mu.conc2)
 
   ##calculate the likelihoods for the N individuals.
   for(ind in 1:N) {
@@ -1546,25 +1588,17 @@ IsotopeRnodiscrim   <- "model {
   ##covariance matrix
   for(sourcex in 2:(num.iso)) {
       for(sourcey in 1:(sourcex-1)) {
-        D.tau.temp[sourcex,sourcey,source] <- 0
+        D.tau[sourcex,sourcey,source] <- 0
       }
     }
     for(sourcey in 2:(num.iso)) {
       for(sourcex in 1:(sourcey-1)) {
-        D.tau.temp[sourcex,sourcey,source] <- 0
+        D.tau[sourcex,sourcey,source] <- 0
       }
-    }
-    
+    }    
     for(source2 in 1:num.iso) {
-      D.tau.temp[source2,source2,source] ~ dgamma(.001,.001)
+      D.tau[source2,source2,source] ~ dexp(0.001)#dgamma(0.001, 0.001)
     }
-  
-    D.tau[1:num.iso,1:num.iso,source] <- D.tau.temp[,,source]
-#     mu.conc[1:num.iso,source] ~ dmnorm(dmu.prior.mu[,source], dmu.prior.tau[,])
-      
-#     for(count in 1:cd.ss[source]) {
-#         cd.array[count,1:num.iso,source] ~ dmnorm(mu.conc[,source], D.tau[,,source])
-#     }
       
 	##draws subsource means and fits to data
     for(sub in 1:subcd.vec[source]) { 
@@ -1572,7 +1606,7 @@ IsotopeRnodiscrim   <- "model {
 	}
 	
 	for(iso in 1:num.iso) {
-		mu.conc[iso, source] <- mean( subcd[source, 1:subcd.vec[source], iso])
+		mu.conc2[iso, source] <- mean( subcd[source, 1:subcd.vec[source], iso])
 	}
 		
 	for(sub in 1:subcd.vec[source]) {
@@ -1616,10 +1650,9 @@ IsotopeRnodiscrim   <- "model {
   p.pop[num.sources] <- 1-sum(p.pop[1:(num.sources-1)]); 
   
   ##rescale p.pop for concentration dependence
-  p.popdenom <- mu.conc%*%p.pop
   for(iso in 1:num.iso) {
     for(source in 1:num.sources) {
-      pIso.pop[iso,source]  <- mu.conc[iso,source]*p.pop[source]/p.popdenom[iso]
+      pIso.pop[iso,source]  <- mu.conc2[iso,source]*p.pop[source]/sum(mu.conc2[iso,]*p.pop) #p.popdenom[iso]
     }
   }
   
@@ -1632,10 +1665,10 @@ IsotopeRnodiscrim   <- "model {
     p[i,num.sources] <- 1-sum(p[i,1:(num.sources-1)]);
    
     ##rescale p.pop for concentration dependence
-    p.inddenom[i,1:num.iso] <- mu.conc%*%p[i,]
+    p.inddenom[i,1:num.iso] <- mu.conc2%*%p[i,]
     for(iso in 1:num.iso) {
       for(source in 1:num.sources) {
-        pIso.ind[i,iso,source]  <- mu.conc[iso,source]*p[i,source]/p.inddenom[i,iso]
+        pIso.ind[i,iso,source]  <- mu.conc2[iso,source]*p[i,source]/p.inddenom[i,iso]
       }
     }
  }#end for i
@@ -1661,22 +1694,27 @@ IsotopeRnodiscrim   <- "model {
     }
        
     ##build source correlation matrix
-    rho.source[source] ~ dunif(-1,1)
+   for(sourcex in 1:num.iso) {
+      for(sourcey in 1:num.iso) {
+ 		  rho.source[sourcex,sourcey,source] ~ dunif(-0.99,0.99);
+		}
+    }
     for(sourcex in 2:(num.iso)) {
       for(sourcey in 1:(sourcex-1)) {
-        rho.mat[sourcex,sourcey,source] <- rho.source[source]
+        rho.mat[source, sourcex,sourcey] <- rho.source[sourcex, sourcey, source]*rho.flag*rho.flag
       }
     }
     for(sourcey in 2:(num.iso)) {
       for(sourcex in 1:(sourcey-1)) {
-        rho.mat[sourcex,sourcey,source] <- rho.source[source]
+        rho.mat[source,sourcex,sourcey] <- rho.mat[source, sourcey, sourcex];
       }
     }
     for(source2 in 1:num.iso) {
-      rho.mat[source2,source2,source] <- 1 
+      rho.mat[source,source2,source2] <- 1;
     }      
+
     cov.source[1:num.iso,1:num.iso,source] <- inverse(tau.source.temp[,,source])
-    tau.source[1:num.iso,1:num.iso,source] <- inverse((cov.source[,,source]%*%rho.mat[,,source]%*%cov.source[,,source]) +  cov.ME )#+ discrimvar.mat )
+    tau.source[1:num.iso,1:num.iso,source] <- inverse((cov.source[,,source]%*%rho.mat[source,,]%*%cov.source[,,source]) +  cov.ME )#+ discrimvar.mat )
  
     ##draws subsource means and fit to data
     for(sub in 1:subsource.vec[source]) { 
@@ -1727,7 +1765,7 @@ IsotopeRnodiscrim   <- "model {
     }
       }
   
-      obscov.mat[1:num.iso,1:num.iso,source,i] <- (covfrac.source[,,source,i]%*%rho.mat[,,source]%*%covfrac.source[,,source,i] +  cov.ME + res.err)  
+      obscov.mat[1:num.iso,1:num.iso,source,i] <- (covfrac.source[,,source,i]%*%rho.mat[source,,]%*%covfrac.source[,,source,i] +  cov.ME + res.err)  
   
     }#end for source
 
@@ -1748,11 +1786,12 @@ IsotopeRnodiscrim   <- "model {
     sd.me[iso] <- sqrt(cov.ME[iso,iso])
             
     for(source in 1:num.sources) {
-        sd.source[iso,source] <- sqrt(cov.source[iso,iso,source])
-        sd.conc[iso,source] <- 1/sqrt(D.tau[iso,iso,source])
+        sd.source[source,iso] <- sqrt(cov.source[iso,iso,source])
+        sd.conc[source,iso] <- 1/sqrt(D.tau[iso,iso,source])
     }
   }
 
+  mu.conc	<- t(mu.conc2)
 
   ##calculate the likelihoods for the N individuals.
   for(ind in 1:N) {
@@ -1787,25 +1826,17 @@ IsotopeRnome <- "model {
   ##covariance matrix
   for(sourcex in 2:(num.iso)) {
       for(sourcey in 1:(sourcex-1)) {
-    D.tau.temp[sourcex,sourcey,source] <- 0
+        D.tau[sourcex,sourcey,source] <- 0
       }
     }
     for(sourcey in 2:(num.iso)) {
       for(sourcex in 1:(sourcey-1)) {
-    D.tau.temp[sourcex,sourcey,source] <- 0
+        D.tau[sourcex,sourcey,source] <- 0
       }
-    }
-    
+    }    
     for(source2 in 1:num.iso) {
-      D.tau.temp[source2,source2,source] ~ dgamma(.001,.001)
+      D.tau[source2,source2,source] ~ dexp(0.001)#dgamma(0.001, 0.001)
     }
-  
-    D.tau[1:num.iso,1:num.iso,source] <- D.tau.temp[,,source]
-#     mu.conc[1:num.iso,source] ~ dmnorm(dmu.prior.mu[,source], dmu.prior.tau[,])
-      
-#     for(count in 1:cd.ss[source]) {
-#         cd.array[count,1:num.iso,source] ~ dmnorm(mu.conc[,source], D.tau[,,source])
-#     }
       
 	##draws subsource means and fits to data
     for(sub in 1:subcd.vec[source]) { 
@@ -1813,7 +1844,7 @@ IsotopeRnome <- "model {
 	}
 	
 	for(iso in 1:num.iso) {
-		mu.conc[iso, source] <- mean( subcd[source, 1:subcd.vec[source], iso])
+		mu.conc2[iso, source] <- mean( subcd[source, 1:subcd.vec[source], iso])
 	}
 		
 	for(sub in 1:subcd.vec[source]) {
@@ -1857,10 +1888,9 @@ IsotopeRnome <- "model {
   p.pop[num.sources] <- 1-sum(p.pop[1:(num.sources-1)]); 
   
   ##rescale p.pop for concentration dependence
-  p.popdenom <- mu.conc%*%p.pop
   for(iso in 1:num.iso) {
     for(source in 1:num.sources) {
-      pIso.pop[iso,source]  <- mu.conc[iso,source]*p.pop[source]/p.popdenom[iso]
+      pIso.pop[iso,source]  <- mu.conc2[iso,source]*p.pop[source]/sum(mu.conc2[iso,]*p.pop) #p.popdenom[iso]
     }
   }
   
@@ -1873,10 +1903,10 @@ IsotopeRnome <- "model {
     p[i,num.sources] <- 1-sum(p[i,1:(num.sources-1)]);
    
     ##rescale p.pop for concentration dependence
-    p.inddenom[i,1:num.iso] <- mu.conc%*%p[i,]
+    p.inddenom[i,1:num.iso] <- mu.conc2%*%p[i,]
     for(iso in 1:num.iso) {
       for(source in 1:num.sources) {
-        pIso.ind[i,iso,source]  <- mu.conc[iso,source]*p[i,source]/p.inddenom[i,iso]
+        pIso.ind[i,iso,source]  <- mu.conc2[iso,source]*p[i,source]/p.inddenom[i,iso]
       }
     }
  }#end for i
@@ -1902,22 +1932,28 @@ IsotopeRnome <- "model {
     }
        
     ##build source correlation matrix
-    rho.source[source] ~ dunif(-1,1)
+    ##build source correlation matrix
+   for(sourcex in 1:num.iso) {
+      for(sourcey in 1:num.iso) {
+ 		  rho.source[sourcex,sourcey,source] ~ dunif(-0.99,0.99);
+		}
+    }
     for(sourcex in 2:(num.iso)) {
       for(sourcey in 1:(sourcex-1)) {
-        rho.mat[sourcex,sourcey,source] <- rho.source[source]
+        rho.mat[source, sourcex,sourcey] <- rho.source[sourcex, sourcey, source]*rho.flag*rho.flag
       }
     }
     for(sourcey in 2:(num.iso)) {
       for(sourcex in 1:(sourcey-1)) {
-        rho.mat[sourcex,sourcey,source] <- rho.source[source]
+        rho.mat[source,sourcex,sourcey] <- rho.mat[source, sourcey, sourcex];
       }
     }
     for(source2 in 1:num.iso) {
-      rho.mat[source2,source2,source] <- 1 
+      rho.mat[source,source2,source2] <- 1;
     }      
+
     cov.source[1:num.iso,1:num.iso,source] <- inverse(tau.source.temp[,,source])
-    tau.source[1:num.iso,1:num.iso,source] <- inverse((cov.source[,,source]%*%rho.mat[,,source]%*%cov.source[,,source]) +  discrimvar.mat )
+    tau.source[1:num.iso,1:num.iso,source] <- inverse((cov.source[,,source]%*%rho.mat[source,,]%*%cov.source[,,source]) +  discrimvar.mat )
  
     ##draws subsource means and fit to data
     for(sub in 1:subsource.vec[source]) { 
@@ -1968,7 +2004,7 @@ IsotopeRnome <- "model {
     }
       }
   
-      obscov.mat[1:num.iso,1:num.iso,source,i] <- (covfrac.source[,,source,i]%*%rho.mat[,,source]%*%covfrac.source[,,source,i] +  res.err)  
+      obscov.mat[1:num.iso,1:num.iso,source,i] <- (covfrac.source[,,source,i]%*%rho.mat[source,,]%*%covfrac.source[,,source,i] +  res.err)  
   
     }#end for source
 
@@ -1990,12 +2026,13 @@ IsotopeRnome <- "model {
             
     for(source in 1:num.sources) {
 
-        sd.source[iso,source] <- sqrt(cov.source[iso,iso,source])
-        sd.conc[iso,source] <- 1/sqrt(D.tau[iso,iso,source])
+        sd.source[source,iso] <- sqrt(cov.source[iso,iso,source])
+        sd.conc[source,iso] <- 1/sqrt(D.tau[iso,iso,source])
 
     }
   }
 
+  mu.conc	<- t(mu.conc2)
 
   ##calculate the likelihoods for the N individuals.
   for(ind in 1:N) {
@@ -2018,25 +2055,17 @@ IsotopeRnomenodiscrim <- "model {
   ##covariance matrix
   for(sourcex in 2:(num.iso)) {
       for(sourcey in 1:(sourcex-1)) {
-        D.tau.temp[sourcex,sourcey,source] <- 0
+        D.tau[sourcex,sourcey,source] <- 0
       }
     }
     for(sourcey in 2:(num.iso)) {
       for(sourcex in 1:(sourcey-1)) {
-        D.tau.temp[sourcex,sourcey,source] <- 0
+        D.tau[sourcex,sourcey,source] <- 0
       }
     }    
     for(source2 in 1:num.iso) {
-      D.tau.temp[source2,source2,source] ~ dgamma(.001,.001)
+      D.tau[source2,source2,source] ~ dexp(0.001)#dgamma(0.001, 0.001)
     }
-  
-    D.tau[1:num.iso,1:num.iso,source] <- D.tau.temp[,,source]
-#     mu.conc[1:num.iso,source] ~ dmnorm(dmu.prior.mu[,source], dmu.prior.tau[,])
-      
-#     for(count in 1:cd.ss[source]) {
-#         cd.array[count,1:num.iso,source] ~ dmnorm(mu.conc[,source], D.tau[,,source])
-#     }      
-
 
 	##draws subsource means and fits to data
     for(sub in 1:subcd.vec[source]) { 
@@ -2044,7 +2073,7 @@ IsotopeRnomenodiscrim <- "model {
 	}
 	
 	for(iso in 1:num.iso) {
-		mu.conc[iso, source] <- mean( subcd[source, 1:subcd.vec[source], iso])
+		mu.conc2[iso, source] <- mean( subcd[source, 1:subcd.vec[source], iso])
 	}
 		
 	for(sub in 1:subcd.vec[source]) {
@@ -2057,7 +2086,7 @@ IsotopeRnomenodiscrim <- "model {
   
   
   ###########################
-  ##Proportion estimamation##
+  ##Proportion estimation##
   ###########################
   ## this is the global mean
   for(i in 1:num.sources) {mu[i] ~ dnorm(alpha.clr[i], 0.001)} 
@@ -2088,10 +2117,9 @@ IsotopeRnomenodiscrim <- "model {
   p.pop[num.sources] <- 1-sum(p.pop[1:(num.sources-1)]); 
   
   ##rescale p.pop for concentration dependence
-  p.popdenom <- mu.conc%*%p.pop
   for(iso in 1:num.iso) {
     for(source in 1:num.sources) {
-      pIso.pop[iso,source]  <- mu.conc[iso,source]*p.pop[source]/p.popdenom[iso]
+      pIso.pop[iso,source]  <- mu.conc2[iso,source]*p.pop[source]/sum(mu.conc2[iso,]*p.pop) #p.popdenom[iso]
     }
   }
   
@@ -2104,10 +2132,10 @@ IsotopeRnomenodiscrim <- "model {
     p[i,num.sources] <- 1-sum(p[i,1:(num.sources-1)]);
    
     ##rescale p.pop for concentration dependence
-    p.inddenom[i,1:num.iso] <- mu.conc%*%p[i,]
+    p.inddenom[i,1:num.iso] <- mu.conc2%*%p[i,]
     for(iso in 1:num.iso) {
       for(source in 1:num.sources) {
-        pIso.ind[i,iso,source]  <- mu.conc[iso,source]*p[i,source]/p.inddenom[i,iso]
+        pIso.ind[i,iso,source]  <- mu.conc2[iso,source]*p[i,source]/p.inddenom[i,iso]
       }
     }
  }#end for i
@@ -2133,22 +2161,28 @@ IsotopeRnomenodiscrim <- "model {
     }
        
     ##build source correlation matrix
-    rho.source[source] ~ dunif(-1,1)
+    ##build source correlation matrix
+   for(sourcex in 1:num.iso) {
+      for(sourcey in 1:num.iso) {
+ 		  rho.source[sourcex,sourcey,source] ~ dunif(-0.99,0.99);
+		}
+    }
     for(sourcex in 2:(num.iso)) {
       for(sourcey in 1:(sourcex-1)) {
-		rho.mat[sourcex,sourcey,source] <- rho.source[source]
+        rho.mat[source, sourcex,sourcey] <- rho.source[sourcex, sourcey, source]*rho.flag*rho.flag
       }
     }
     for(sourcey in 2:(num.iso)) {
       for(sourcex in 1:(sourcey-1)) {
-        rho.mat[sourcex,sourcey,source] <- rho.source[source]
+        rho.mat[source,sourcex,sourcey] <- rho.mat[source, sourcey, sourcex];
       }
     }
     for(source2 in 1:num.iso) {
-      rho.mat[source2,source2,source] <- 1 
+      rho.mat[source,source2,source2] <- 1;
     }      
+
     cov.source[1:num.iso,1:num.iso,source] <- inverse(tau.source.temp[,,source])
-    tau.source[1:num.iso,1:num.iso,source] <- inverse((cov.source[,,source]%*%rho.mat[,,source]%*%cov.source[,,source]))
+    tau.source[1:num.iso,1:num.iso,source] <- inverse((cov.source[,,source]%*%rho.mat[source,,]%*%cov.source[,,source]))
  
     ##draws subsource means and fit to data
     for(sub in 1:subsource.vec[source]) { 
@@ -2176,8 +2210,9 @@ IsotopeRnomenodiscrim <- "model {
 		res.tau[j,i] <- 0;
 		}
 	}
+	
   for(iso in 1:num.iso) {
-    res.tau[iso,iso] ~ dgamma(1e-3,1e-3)#dexp(1/1000)#dunif(0,20)#dgamma(10,10)#dunif(0,20);#dexp(1);
+    res.tau[iso,iso] ~ dgamma(0.001, 0.001)
   }
   res.err[1:num.iso,1:num.iso] <- inverse(res.tau)
 
@@ -2199,7 +2234,7 @@ IsotopeRnomenodiscrim <- "model {
     }
       }
   
-      obscov.mat[1:num.iso,1:num.iso,source,i] <- (covfrac.source[,,source,i]%*%rho.mat[,,source]%*%covfrac.source[,,source,i] +  res.err)  
+      obscov.mat[1:num.iso,1:num.iso,source,i] <- (covfrac.source[,,source,i]%*%rho.mat[source,,]%*%covfrac.source[,,source,i] +  res.err)  
   
     }#end for source
 
@@ -2214,19 +2249,19 @@ IsotopeRnomenodiscrim <- "model {
   }#end for i
 
   ##get the sd's for jack
-  for(iso in 1:num.iso) {
-  
-    sd.res[iso] <- sqrt(res.err[iso,iso])
-#     sd.me[iso] <- sqrt(cov.ME[iso,iso])
-            
+  for(iso in 1:num.iso) {  
+	sd.res[iso] <- sqrt(res.err[iso,iso])
+    }
+    
     for(source in 1:num.sources) {
 
-        sd.source[iso,source] <- sqrt(cov.source[iso,iso,source])
-        sd.conc[iso,source] <- 1/sqrt(D.tau[iso,iso,source])
+		for(iso in 1:num.iso) {
+			sd.source[source,iso] <- sqrt(cov.source[iso,iso,source])
+			sd.conc[source,iso] <-1/sqrt(D.tau[iso,iso, source])
+		}
+	}
 
-    }
-  }
-
+	mu.conc	<- t(mu.conc2)
 
   ##calculate the likelihoods for the N individuals.
   for(ind in 1:N) {
