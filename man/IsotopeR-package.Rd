@@ -22,10 +22,9 @@ Jack Hopkins & Jake Ferguson
 Maintainer: Jake Ferguson <troutinthemilk@gmail.com>
 }
 \references{
-Hopkins and Ferguson, submitted
+Hopkins, J. B., & Ferguson, J. M. (2012). Estimating the Diets of Animals Using Stable Isotopes and a Comprehensive Bayesian Mixing Model. PLoS ONE, 7(1), 1-13. doi:10.1371/journal.pone.0028478
 
-Semmens, B.X., Ward, E.J., Moore, J.W., and Darimont, C.T.: Quantifying Inter-and Intra-Population Niche Variability Using Hierarchical Bayesian Stable Isotope Mixing Models, Public Library of Science, 2009
-
+Semmens, B. X., Ward, E. J., Moore, J. W., & Darimont, C. T. (2009). Quantifying inter-and intra-population niche variability using hierarchical Bayesian stable isotope mixing models. PLoS One, 4(7). doi:10.1371/journal.pone.0006187
 }
 \seealso{
 \code{\link[siar]{siarmenu}}
