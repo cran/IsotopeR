@@ -2,6 +2,9 @@ Known Issues:
 *Cannot estimate source correlation when more than 2 isotopes are estimated. This is due to computational issues in jags. For now source correlations are set to 0 when estimating more than 3 isotopes.
 *Cannot estimate diet contributions when only 1 isotope is used.
 
+v0.4.2
+*allowed csv files with ';' seperators to be loaded.
+
 v0.4.1
 *fixed error in plotting  concentration dependence.
 *updated citations.

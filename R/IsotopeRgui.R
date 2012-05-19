@@ -26,13 +26,17 @@ IsoWrapper <- function(Mixtures="Necessary File", Sources="Necessary File", Conc
     if(dim(X)[2] == 1) {
         X           <- as.matrix(read.table(Mixtures, sep=',', header=TRUE)) #mixture data file
     }
-    
+	if(dim(X)[2] == 1) {
+        X           <- as.matrix(read.table(Mixtures, sep=';', header=TRUE)) #mixture data file
+    }
     sources     <- try((read.table(Sources,sep='\t',header=TRUE)), silent=TRUE) #source data
 	if(class(sources) == 'try-error') {stop("Source file not found")}
     if(dim(sources)[2] == 1) { 
         sources     <- (read.table(Sources,sep=',',header=TRUE)) #source data
     }
-
+	if(dim(sources)[2] == 1) { 
+        sources     <- (read.table(Sources,sep=';',header=TRUE)) #source data
+    }
     D   <- NA
     cd.mat <- NA
     subcd.vec <- NA
@@ -46,6 +50,10 @@ IsoWrapper <- function(Mixtures="Necessary File", Sources="Necessary File", Conc
         if(dim(D)[2] == 1) {
             D           <- try(read.table(Concentrations,sep=',',header=TRUE), silent=TRUE) #source concentration data
         }
+        if(dim(D)[2] == 1) {
+            D           <- try(read.table(Concentrations,sep=';',header=TRUE), silent=TRUE) #source concentration data
+        }
+
     }
     
     Z <- NA
@@ -58,6 +66,9 @@ IsoWrapper <- function(Mixtures="Necessary File", Sources="Necessary File", Conc
         if(dim(Z)[2] == 1) { 
             Z           <- as.matrix(read.table(Measurement.Error, sep=',', header=TRUE)) #file for measurement error
         }
+        if(dim(Z)[2] == 1) { 
+            Z           <- as.matrix(read.table(Measurement.Error, sep=';', header=TRUE)) #file for measurement error
+        }        
     }
     
     discrim.sd <- NA
@@ -70,6 +81,9 @@ IsoWrapper <- function(Mixtures="Necessary File", Sources="Necessary File", Conc
         if(dim(discrim.sd)[2] == 1) {
             discrim.sd      <- (read.table(Discrimination.Error,sep=',',header=TRUE)) #file with the standard deviation of discrimination in sources
         }
+        if(dim(discrim.sd)[2] == 1) {
+            discrim.sd      <- (read.table(Discrimination.Error,sep=';',header=TRUE)) #file with the standard deviation of discrimination in sources
+        }        
     }
 
     digest <- NA
@@ -82,6 +96,9 @@ IsoWrapper <- function(Mixtures="Necessary File", Sources="Necessary File", Conc
         if(dim(digest)[2] == 1) {
             digest      <- (read.table(Digestibility.Factor,sep=',',header=TRUE)) #file with digestion
         }
+        if(dim(digest)[2] == 1) {
+            digest      <- (read.table(Digestibility.Factor, sep=';', header=TRUE)) #file with digestion
+        }        
     }
 
     options(warn=-1)
