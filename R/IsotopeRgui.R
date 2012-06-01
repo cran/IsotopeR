@@ -19,7 +19,7 @@ IsoWrapper <- function(Mixtures="Necessary File", Sources="Necessary File", Conc
     nome.flag = 0
     nodiscrim.flag = 0
     nodigest.flag=0
-    
+
     #reads in the files               
     X           <- try(as.matrix(read.table(Mixtures, sep='\t', header=TRUE)), silent=TRUE) #mixture data file
     if(class(X) == 'try-error') { stop("Mixture file not found") }
@@ -37,6 +37,7 @@ IsoWrapper <- function(Mixtures="Necessary File", Sources="Necessary File", Conc
 	if(dim(sources)[2] == 1) { 
         sources     <- (read.table(Sources,sep=';',header=TRUE)) #source data
     }
+
     D   <- NA
     cd.mat <- NA
     subcd.vec <- NA
@@ -70,7 +71,7 @@ IsoWrapper <- function(Mixtures="Necessary File", Sources="Necessary File", Conc
             Z           <- as.matrix(read.table(Measurement.Error, sep=';', header=TRUE)) #file for measurement error
         }        
     }
-    
+
     discrim.sd <- NA
     if(Discrimination.Error == 'Optional File') {
         nodiscrim.flag = 1
@@ -244,25 +245,29 @@ IsoWrapper <- function(Mixtures="Necessary File", Sources="Necessary File", Conc
     }
     #gets number of individual observations
 	dim.x	<- dim(X)
-    num.inds <- nlevels(as.factor(X[,dim.x[2]]))
-    ind.counts <- vector('numeric',num.inds)
-    for(i in 1:num.inds) {
-        ind.counts[i] <- length(which(i == X[,dim.x[2]]))
-    }
-    #individual observation matrix
+    num.inds 	<- nlevels(as.factor(X[,dim.x[2]]))
+	ind.levels		<- as.factor(X[,dim.x[2]])
+    ind.counts 	<- vector('numeric',num.inds)
 
-    ind.array <- array(NA,c(num.iso,num.inds,max(ind.counts)))
-    for(i in 1:num.inds) {
-        ind.array[1:num.iso,i,] <- t(X[which(X[,dim.x[2]]==i), 1:num.iso])
+	
+	counter	<- 1
+    for(i in ind.levels) {
+        ind.counts[counter] 	<- length(which(i == X[,dim.x[2]]))
+		counter							<- counter+1
+    }
+	
+	ind.array 	<- array(NA,c(num.iso,num.inds,max(ind.counts)))
+	counter	<- 1
+    for(i in ind.levels) {
+        ind.array[1:num.iso,counter,] 	<- t(X[which(X[,dim.x[2]]==i), 1:num.iso])
+		counter												<- counter+1
     }
 
-# 	print(Tau.mat)
-# 	tau.mat	<- diag(num.iso)
-# 	tau.df		<- num.iso+100
 	rho.flag	<- ifelse(num.iso ==2, 1, 0)
 	#individual observation id's
     N <- num.inds
-   jags.dump <- list(muz=muz, ind.counts=ind.counts, ind.array=ind.array,N=N, num.sources=num.sources, num.iso=num.iso, Z=Z, dmu.prior.mu=dmu.prior.mu, Nz=Nz, mu.prior.mu=mu.prior.mu, mu.prior.cov=mu.prior.cov, dmu.prior.tau=dmu.prior.tau, alpha.clr=alpha.clr,  discrimvar.mat=discrimvar.mat, subsource.vec=subsource.vec, subsource.samples=subsource.samples, source.mat=source.mat, cd.mat = cd.mat, subcd.vec=subcd.vec, subcd.samples=subcd.samples, num.groups=num.groups, groupnum.mat=groupnum.mat, rho.flag=rho.flag)
+
+    jags.dump <- list(muz=muz, ind.counts=ind.counts, ind.array=ind.array,N=N, num.sources=num.sources, num.iso=num.iso, Z=Z, dmu.prior.mu=dmu.prior.mu, Nz=Nz, mu.prior.mu=mu.prior.mu, mu.prior.cov=mu.prior.cov, dmu.prior.tau=dmu.prior.tau, alpha.clr=alpha.clr,  discrimvar.mat=discrimvar.mat, subsource.vec=subsource.vec, subsource.samples=subsource.samples, source.mat=source.mat, cd.mat = cd.mat, subcd.vec=subcd.vec, subcd.samples=subcd.samples, num.groups=num.groups, groupnum.mat=groupnum.mat, rho.flag=rho.flag)
 
    if(noconc.flag) {
         jags.rem    <- which( names(jags.dump)  == 'cd.mat' |  names(jags.dump)  == 'dmu.prior.mu' |  names(jags.dump)  == 'dmu.prior.tau' |  names(jags.dump)  == 'subcd.samples' |  names(jags.dump)  == 'subcd.vec')
@@ -295,10 +300,13 @@ IsoWrapper <- function(Mixtures="Necessary File", Sources="Necessary File", Conc
 	}
 	#function used to initialize parameters
     jags.inits <- list( dmu.prior.mu=dmu.prior.mu, mu.prior.mu=mu.prior.mu, p.transform=runif(num.sources), region.sig=0.5, ind.sig=0.5, p.ind = matrix(runif(N*num.sources), N, num.sources) )
-# print(curr.model)
-# print(file.flag)
-	if(run.parallel) {parallel.state <- "parallel"} else { parallel.state <- "interruptible"}
-	jags.out <- run.jags(model=curr.model, monitor=jags.params, data=jags.dump, n.chains=mcmc.chains, burnin=mcmc.burn, sample= (mcmc.chainLength-mcmc.burn), thin=mcmc.thin, psrf.target=1.5, check.conv=TRUE, plots=FALSE, check.stochastic=FALSE,  monitor.deviance=TRUE, silent.jags=FALSE, monitor.pd=FALSE, method=parallel.state)
+
+	if(run.parallel) {parallel.state <- "parallel"} else { 
+		parallel.state <- "interruptible"
+		jags.params <- c(jags.params, "dic")#dic can only be run in when nonparallel calculations are used.
+	}
+	
+	jags.out <- run.jags(model=curr.model, monitor=jags.params, data=jags.dump, n.chains=mcmc.chains, burnin=mcmc.burn, sample= (mcmc.chainLength-mcmc.burn), thin=mcmc.thin, psrf.target=1.5, check.conv=TRUE, plots=FALSE, check.stochastic=FALSE,  monitor.deviance=TRUE, silent.jags=FALSE, method=parallel.state)
 
 	r.est <- jags.out$psrf$psrf[,1]
 	jags.output.mat <- cbind(jags.out$summary$statistics[,1:2], jags.out$summary$quantiles, r.est)

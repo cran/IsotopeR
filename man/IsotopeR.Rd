@@ -25,5 +25,7 @@ Jake Hopkins, Jake Ferguson
 #to run IsotopeR call
 #IsotopeR()
 #then follow the gui prompts.
+
+#type 'vignette("IsotopeR") for a full tutorial.
 }
 

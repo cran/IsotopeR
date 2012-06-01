@@ -166,7 +166,7 @@ in the first group should be designated as “1,” the second group as
 no repeated measurements for individuals, then each individual should
 be designated by a unique integer (e.g., 1, 2, 3…); individuals with
 repeated measures should be designated using the same number (e.g.,
-1, 1, 1, 2, 2, 2…).
+1, 1, 1, 2, 2, 2…). Note that IsotopeR does not require consecutive integers for the individual column, however the estimated values are necessarily reported as consecutive, so it may be difficult to map the input to output if you use nonconsecutive integer labels in the data file.
 
 \begin{table}[!h]
 \centering{}%
@@ -305,7 +305,7 @@ the MCMC to stabilize.
 burnin. 
 \item [{Thinning rate:}] Reduces the sample size to every $n^{th}$ iteration;
 this is used to reduce autocorrelation in the chain. 
-\item [{Run parallel}:] If TRUE, runs mcmc chains in parallel on multicore machines. 
+\item [{Run parallel}:] If TRUE, runs mcmc chains in parallel on multicore machines. Note that the Deviance Information Criterion (DIC) cannot be reported when using the parallel feature and so it is automatically turned off when this option is TRUE. Otherwise DIC is automatically reported.
 \end{description}
 
 \section*{Error messages}
