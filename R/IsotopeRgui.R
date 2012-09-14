@@ -21,13 +21,13 @@ IsoWrapper <- function(Mixtures="Necessary File", Sources="Necessary File", Conc
     nodigest.flag=0
 
     #reads in the files               
-    X           <- try(as.matrix(read.table(Mixtures, sep='\t', header=TRUE)), silent=TRUE) #mixture data file
+    X           <- try((read.table(Mixtures, sep='\t', header=TRUE)), silent=TRUE) #mixture data file
     if(class(X) == 'try-error') { stop("Mixture file not found") }
     if(dim(X)[2] == 1) {
-        X           <- as.matrix(read.table(Mixtures, sep=',', header=TRUE)) #mixture data file
+        X           <- (read.table(Mixtures, sep=',', header=TRUE)) #mixture data file
     }
 	if(dim(X)[2] == 1) {
-        X           <- as.matrix(read.table(Mixtures, sep=';', header=TRUE)) #mixture data file
+        X           <- (read.table(Mixtures, sep=';', header=TRUE)) #mixture data file
     }
     sources     <- try((read.table(Sources,sep='\t',header=TRUE)), silent=TRUE) #source data
 	if(class(sources) == 'try-error') {stop("Source file not found")}
@@ -175,7 +175,7 @@ IsoWrapper <- function(Mixtures="Necessary File", Sources="Necessary File", Conc
             counter <- counter+1        
         }    
         names(source.ss) <- levels(sources$source)
-    
+
 		##get array indices for the different subsources
 		subsources <- sources[,num.iso+2]
 		subsource.vec <- nlevels(as.factor(sources[,num.iso+1]))
@@ -249,17 +249,20 @@ IsoWrapper <- function(Mixtures="Necessary File", Sources="Necessary File", Conc
 	ind.levels		<- as.factor(X[,dim.x[2]])
     ind.counts 	<- vector('numeric',num.inds)
 
-	
+
 	counter	<- 1
-    for(i in ind.levels) {
+    for(i in levels(ind.levels)) {
         ind.counts[counter] 	<- length(which(i == X[,dim.x[2]]))
 		counter							<- counter+1
     }
 	
 	ind.array 	<- array(NA,c(num.iso,num.inds,max(ind.counts)))
 	counter	<- 1
-    for(i in ind.levels) {
-        ind.array[1:num.iso,counter,] 	<- t(X[which(X[,dim.x[2]]==i), 1:num.iso])
+	
+
+    for(i in levels(ind.levels)) {
+		temp	<- which(X[,dim.x[2]]==i)
+        ind.array[1:num.iso,counter,1:length(temp)] 	<- t(X[which(X[,dim.x[2]]==i), 1:num.iso])
 		counter												<- counter+1
     }
 

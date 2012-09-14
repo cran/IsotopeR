@@ -1,6 +1,6 @@
-52106b58d6794d668dc1252f46c4b257 *DESCRIPTION
+247b81300bfbf90af8950931006cf837 *DESCRIPTION
 b5ecabfce1b0c304660064477c3865b1 *NAMESPACE
-6f5ec964357b4bf99c57f9a1c5af3fad *NEWS
+68e68373a339cbdec5d4b2d3e94a24ed *NEWS
 5d7f2f84a77c8a9178ad400331759388 *R/Data_Example/Digest.csv
 e9fedef90cc7e9dd0c69df99261eb108 *R/Data_Example/DisfcrimSD.csv
 407afe3ceb89affdf819a7b095299c10 *R/Data_Example/MeasurementError.csv
@@ -12,12 +12,12 @@ a3545c41985ae0aeec6fc98f190ea3d5 *R/Data_Example/Sources.csv
 2110ba35035cdc8a95fbbd3ff013da9a *R/Data_Example/Sources4source.csv
 2ef84f9d963cf15dd258fff7750fb873 *R/IsotopeRModelsGroups.R
 ef7d1c8506f344a1fdb58a3119039a8b *R/IsotopeRModelsNoGroups.R
-fa2d70e773426266383709670258a68b *R/IsotopeRgui.R
-1baa97adf963bad4be4f2d1716b0047a *R/Plot_jags.r
+237d2e318955edaa4017db79d2f38980 *R/IsotopeRgui.R
+c7d594a6b8ad2625ef47f2e0d507c403 *R/Plot_jags.r
 f164d57d81bc63a916caa0be550986a3 *inst/doc/IsoScreen.png
 39a8ca9532546b4998028aac6b28edd7 *inst/doc/IsotopeR.Rnw
 6c8d0858a432582c754305404ef0a806 *inst/doc/IsotopeR.Rnw.backup
-054cf178d01954b011d0d358cd7e39f6 *inst/doc/IsotopeR.pdf
+c361569f4e252dabfdccacd127e95f36 *inst/doc/IsotopeR.pdf
 2d16ceccb052e32758920dd1a5ca9679 *inst/doc/Screenshot-IsotopeR.eps
 2794c256e52d6356b0a60e9c6238ad32 *inst/doc/Screenshot-IsotopeR.png
 42b0b70932241151b15ab55ee1737e80 *inst/doc/Screenshot-Load_Previous_Run.eps
