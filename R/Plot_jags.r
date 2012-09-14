@@ -281,7 +281,12 @@ Tri.plots <- function(jags.1, X, sources=NA, plot.mix=FALSE,plot.ind.flag=FALSE,
 
  ##Plots observed isotope values of individuals
     if(plot.ind.flag) {  
-		plotCI(x=x.points, y=y.points, liw=(x.sd), uiw=(x.sd), xlim=range(c(sources[,1], X[,1]))-2*max(sigmaz.med ), ylim=range(c(sources[,2], X[,2])), err="x",pch=19, xlab=xlab, ylab=ylab, col="white") 
+		if(me.flag) {
+			plotCI(x=x.points, y=y.points, liw=(x.sd), uiw=(x.sd), xlim=range(c(sources[,1], X[,1]))-2*max(sigmaz.med ), ylim=range(c(sources[,2], X[,2])), err="x",pch=19, xlab=xlab, ylab=ylab, col="white") 
+		} else {
+			plotCI(x=x.points, y=y.points, liw=(x.sd), uiw=(x.sd), xlim=range(c(sources[,1], X[,1])), ylim=range(c(sources[,2], X[,2])), err="x",pch=19, xlab=xlab, ylab=ylab, col="white") 
+		}
+		
 		plotCI(x=x.points, y=y.points, liw=(y.sd), uiw=(y.sd) ,err="y",add=TRUE,pch=19,col="white")
 		box(lwd=2)
 
