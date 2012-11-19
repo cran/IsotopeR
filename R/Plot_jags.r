@@ -506,7 +506,7 @@ Bi.plots <- function(jags.1,X, sources=NA, plot.mix=FALSE,plot.ind.flag=FALSE, m
 		if(is.null(xlim)) { xlim <- (range(x.points) + c(-1,1)*2.5*x.sd) }
 		if(is.null(ylim)) { ylim <- range(y.points) + c(-1,1)*2.5*y.sd }
 	
-		plot(x=x.points, y=y.points, xlim=xlim, ylim=xlim, xlab=xlab, ylab=ylab, pch=c(19,19), col=c("white","white"))
+		plot(x=x.points, y=y.points, xlim=xlim, ylim=ylim, xlab=xlab, ylab=ylab, pch=c(19,19), col=c("white","white"))
 		points(x.basic,y.basic,type='l',lwd=2,col="grey")  
 		
 	box(lwd=2)

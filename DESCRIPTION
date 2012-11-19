@@ -1,7 +1,7 @@
 Package: IsotopeR
 Type: Package
 Title: Stable isotope analysis
-Version: 0.4.4
+Version: 0.4.5
 Date: 2012-09-14
 Author: Jake Ferguson and Jack Hopkins
 Maintainer: Jake Ferguson <troutinthemilk@gmail.com>
@@ -12,6 +12,6 @@ Depends: fgui, tools, runjags, coda, lattice, ellipse, plotrix,
         colorspace
 License: GPL (>= 2)
 LazyLoad: yes
-Packaged: 2012-09-14 13:46:22 UTC; troutinthemilk
+Packaged: 2012-11-18 21:26:30 UTC; troutinthemilk
 Repository: CRAN
-Date/Publication: 2012-09-14 14:50:10
+Date/Publication: 2012-11-19 06:59:33
