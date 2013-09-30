@@ -9,7 +9,13 @@ A wrapper function for IsotopeR. Used to call the gui.
 }
 
 \usage{
-IsoWrapper(Mixtures = "Necessary File", Sources = "Necessary File", Concentrations = "Optional File", Measurement.Error = "Optional File", Discrimination.Error = "Optional File", Digestibility.Factor = "Optional File", output.name = "SampleOutput.Rdata", mcmc.chains = 3, mcmc.burn = 1000, mcmc.chainLength = 1000, mcmc.thin = 100, plot.observations = TRUE, plot.mixing.estimates = TRUE, plot.dietary.source.contributions = TRUE, color.plots=TRUE, run.parallel = TRUE)
+IsoWrapper(Mixtures = "Necessary File", Sources = "Necessary File", 
+Concentrations = "Optional File", Measurement.Error = "Optional File", 
+Discrimination.Error = "Optional File", Digestibility.Factor = "Optional File", 
+output.name = "SampleOutput.Rdata", mcmc.chains = 3, mcmc.burn = 1000, 
+mcmc.chainLength = 1000, mcmc.thin = 100, plot.observations = TRUE, 
+plot.mixing.estimates = TRUE, plot.dietary.source.contributions = TRUE, 
+color.plots=TRUE, run.parallel = TRUE)
 }
 \arguments{
   \item{Mixtures}{

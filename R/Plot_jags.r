@@ -8,19 +8,15 @@
 ##plot.mix is a 0,1 flag denoting whether to plot estimated mixture values
 ##plot.ind.flag is a 0,1 flag denoting whether to plot X.
 ##################################
-library(colorspace)
 
 Tri.plots <- function(jags.1, X, sources=NA, plot.mix=FALSE,plot.ind.flag=FALSE, me.flag=FALSE, color.plots=TRUE, xlab=NULL, ylab=NULL) {
-
-	require(ellipse)
-	require(plotrix)
 
 	num.isos <- 2#this will always be true for these plots
 	num.ind <- dim(X)[1]
 	sources.levs <- levels(sources[,num.isos+1])
 	num.sources <- nlevels(as.factor(sources.levs))
 	subsources <- sources[,num.isos+2]
-
+		
 	if( is.null(xlab) ) {
 		xlab=(dimnames(X)[[2]][1])
 	}
@@ -29,7 +25,7 @@ Tri.plots <- function(jags.1, X, sources=NA, plot.mix=FALSE,plot.ind.flag=FALSE,
 	}
 
 	if(color.plots) {
-
+		require(colorspace)
 		##setting colors for the subsources
 		source.cols <- vector('numeric', dim(sources)[1])
 		source.list <- list()
@@ -41,7 +37,6 @@ Tri.plots <- function(jags.1, X, sources=NA, plot.mix=FALSE,plot.ind.flag=FALSE,
 			source.subs[[i]] 	<- levels(as.factor(sources[source.list[[i]],num.isos+2]))
 			source.collist[[i]] <- sequential_hcl(length(source.subs[[i]]), h = h.vec[i], c. = c(150, 10), l = c(30, 80), power = 1)
 		}
-
 		for(index in 1:dim(sources)[1]) {
 			source <- which(sources[index, num.isos+1] == sources.levs)
 			subsource <- which(as.factor(sources[index, num.isos+2]) == source.subs[[source]])
@@ -78,10 +73,10 @@ Tri.plots <- function(jags.1, X, sources=NA, plot.mix=FALSE,plot.ind.flag=FALSE,
   mixmu.hiCI	<- jags.table[mix.index,hi.ci]
   mixmu.hiCI 	<- cbind(mixmu.hiCI[1:num.ind], mixmu.hiCI[(num.ind+1):(2*num.ind)])
 
+
   cov.conc.index <- grep("sd.conc", jags.names[[1]])
   cov.conc <- jags.table[cov.conc.index, med]
   x.points <- mu.source[1:(length(mu.source)/2)]
-
   if(me.flag) { x.sd     <- cov.source[1:num.sources] + sigmaz.med[1] } else { 
     x.sd		<- cov.source[1:num.sources] #+ sigmaz.med[1]^2)
   }
@@ -91,7 +86,7 @@ Tri.plots <- function(jags.1, X, sources=NA, plot.mix=FALSE,plot.ind.flag=FALSE,
   y.points <- mu.source[(length(mu.source)/2+1):length(mu.source)]
   y.lowCI <- mu.lowCI[(length(mu.source)/2+1):length(mu.source)]
   y.hiCI <- mu.hiCI[(length(mu.source)/2+1):length(mu.source)]
-
+	
   if(me.flag) {
       y.sd <- cov.source[(num.sources+1):(2*num.sources)]+ sigmaz.med[2]
   } else {
@@ -99,12 +94,12 @@ Tri.plots <- function(jags.1, X, sources=NA, plot.mix=FALSE,plot.ind.flag=FALSE,
   }
   y.lowCI <- y.points - 2*y.sd
   y.hiCI <- y.points + 2*y.sd
-		
+
   data.cols="black"
   
   D.source.index <- grep("mu.conc", jags.names[[1]])
   D.source <- jags.table[D.source.index,med]
-	
+
   D.lowCI <- jags.table[D.source.index,low.ci]
   D.hiCI <- jags.table[D.source.index,hi.ci]
 	if(length(D.source)==0) {
@@ -140,7 +135,6 @@ Tri.plots <- function(jags.1, X, sources=NA, plot.mix=FALSE,plot.ind.flag=FALSE,
   y.hiCI.matrix <- base.matrix
   x.outer.matrix <- base.matrix
   y.outer.matrix <- base.matrix
-  
   if(plot.mix) {
 	for(r1 in 1:length(axis.raw)) {
 		for(r2 in 1:(length(axis.raw))) {
@@ -206,10 +200,10 @@ Tri.plots <- function(jags.1, X, sources=NA, plot.mix=FALSE,plot.ind.flag=FALSE,
   y.outer.loCI <- apply(y.matrix, c(1,2), '%*%', y.lowCI)
   y.outer.hiCI <- apply(y.matrix, c(1,2), '%*%', y.hiCI)
 }
-   
+    
   if(!plot.ind.flag) {
-
-	    plotCI(x=x.points, y=y.points, liw=(x.sd), uiw=(x.sd), xlim=(range(x.points) + c(-1,1)*2.5*max(x.sd)), ylim=(range(y.points) + c(-1,1)*2.5*max(y.sd)), err="x",pch=19, xlab=xlab, ylab=ylab, col="white")
+		require(plotrix)
+		plotCI(x=x.points, y=y.points, liw=(x.sd), uiw=(x.sd), xlim=(range(x.points) + c(-1,1)*2.5*max(x.sd)), ylim=(range(y.points) + c(-1,1)*2.5*max(y.sd)), err="x",pch=19, xlab=xlab, ylab=ylab, col="white")
 		
 		plotCI(x=x.points, y=y.points, liw=(y.sd), uiw=(y.sd) ,err="y",add=TRUE,pch=19,col="white")
 		box(lwd=2)
@@ -257,7 +251,7 @@ Tri.plots <- function(jags.1, X, sources=NA, plot.mix=FALSE,plot.ind.flag=FALSE,
 		rho.vec <-jags.1$summary$statistics[rho.index,1]
 		rho.vec <- rho.vec[4:6]
 		for(i in 1:3) {
-
+			require(ellipse)
 			T.mat <- diag(2)
 			T.mat[1,2] <- rho.vec[i]
 			T.mat[2,1] <- rho.vec[i]
@@ -276,9 +270,7 @@ Tri.plots <- function(jags.1, X, sources=NA, plot.mix=FALSE,plot.ind.flag=FALSE,
   ##plots predicted isotope values of individuals
 
 	if(plot.mix ==TRUE) {
-
-# 		print(mixmu.med[,1])
-# 		print(mixmu.med[,2])
+		require(plotrix)
 		plotCI(x=mixmu.med[,1], y=mixmu.med[,2], liw=(mixmu.med[,1]-mixmu.loCI[,1]), uiw=(mixmu.hiCI[,1] - mixmu.med[,1]), err="x", add=TRUE, col='dimgrey', pch=19)
 		plotCI(x=mixmu.med[,1], y=mixmu.med[,2], liw=(mixmu.med[,2]-mixmu.loCI[,2]), uiw=(mixmu.hiCI[,2] - mixmu.med[,2]), err="y", , add=TRUE, col='dimgrey', pch=19)
 		points(mixmu.med,lwd=2)
@@ -286,15 +278,13 @@ Tri.plots <- function(jags.1, X, sources=NA, plot.mix=FALSE,plot.ind.flag=FALSE,
 	}
 
  ##Plots observed isotope values of individuals
- 
-    if(plot.ind.flag) {  
+    if(plot.ind.flag) { 
+		require(plotrix)
 		if(me.flag) {
 			plotCI(x=x.points, y=y.points, liw=(x.sd), uiw=(x.sd), xlim=range(c(sources[,1], X[,1]))-2*max(sigmaz.med ), ylim=range(c(sources[,2], X[,2])), err="x",pch=19, xlab=xlab, ylab=ylab, col="white") 
 		} else {
-
-				plotCI(x=x.points, y=y.points, liw=(x.sd), uiw=(x.sd), xlim=range(c(sources[,1], X[,1])), ylim=range(c(sources[,2], X[,2])), err="x",pch=19, xlab=xlab, ylab=ylab, col="white") 
+			plotCI(x=x.points, y=y.points, liw=(x.sd), uiw=(x.sd), xlim=range(c(sources[,1], X[,1])), ylim=range(c(sources[,2], X[,2])), err="x",pch=19, xlab=xlab, ylab=ylab, col="white") 
 		}
-		
 		plotCI(x=x.points, y=y.points, liw=(y.sd), uiw=(y.sd) ,err="y",add=TRUE,pch=19,col="white")
 		box(lwd=2)
 
@@ -326,8 +316,6 @@ Tri.plots <- function(jags.1, X, sources=NA, plot.mix=FALSE,plot.ind.flag=FALSE,
 ##plot.ind.flag is a 0,1 flag denoting whether to plot X
 ##################################
 Bi.plots <- function(jags.1,X, sources=NA, plot.mix=FALSE,plot.ind.flag=FALSE, me.flag=FALSE, color.plots=TRUE, xlab=NULL, ylab=NULL, xlim=NULL, ylim=NULL) {
-  require(ellipse)
-  require(plotrix)
   
   N <- dim(X)[1]
   
@@ -337,19 +325,19 @@ Bi.plots <- function(jags.1,X, sources=NA, plot.mix=FALSE,plot.ind.flag=FALSE, m
 		source.cols <- vector('numeric', dim(sources)[1])
 
 	if(color.plots) {
-		
+		require(colorspace)
 		##setting colors for the subsources
 		source.list <- list()
 		source.subs <- list()
 		source.collist <- list()
 
-		source.list[[1]] 		<- which(as.factor(sources[,num.isos+1]) == sources.levs[1])
+		source.list[[1]] 	<- which(as.factor(sources[,num.isos+1]) == sources.levs[1])
 		source.subs[[1]]	<- levels(as.factor(sources[source.list[[1]],num.isos+2]))
 		source.collist[[1]]	<- sequential_hcl(length(source.subs[[1]]), h = 260, c. = c(150, 10), l = c(30, 80), power = 1)
 
-		source.list[[2]] 		<- which(as.factor(sources[,num.isos+1]) == sources.levs[2])
+		source.list[[2]] 	<- which(as.factor(sources[,num.isos+1]) == sources.levs[2])
 		source.subs[[2]] 	<- levels(as.factor(sources[source.list[[2]],num.isos+2]))
-		source.collist[[2]] 	<- sequential_hcl(length(source.subs[[2]]), h = 5, c. = c(200, 60), l = c(30, 90), power = 1)
+		source.collist[[2]] <- sequential_hcl(length(source.subs[[2]]), h = 5, c. = c(200, 60), l = c(30, 90), power = 1)
 
 		for(index in 1:dim(sources)[1]) {
 			source 						<- which(as.factor(sources[index, num.isos+1]) == sources.levs)
@@ -509,19 +497,18 @@ Bi.plots <- function(jags.1,X, sources=NA, plot.mix=FALSE,plot.ind.flag=FALSE, m
 	if( is.null(ylab) ) {
 		ylab=(dimnames(X)[[2]][2])
 	}
-
+	
 	if(!plot.ind.flag) {
 		if(is.null(xlim)) { xlim <- (range(x.points) + c(-1,1)*2.5*x.sd) }
 		if(is.null(ylim)) { ylim <- range(y.points) + c(-1,1)*2.5*y.sd }
-print('there')
-		plot(x=x.points, y=y.points, xlim=xlim, ylim=ylim, xlab=xlab, ylab=ylab, pch=c(19,19), col=c("white","white"))
+	
+		plot(x=x.points, y=y.points, xlim=xlim, ylim=xlim, xlab=xlab, ylab=ylab, pch=c(19,19), col=c("white","white"))
 		points(x.basic,y.basic,type='l',lwd=2,col="grey")  
 		
 	box(lwd=2)
 	if(plot.mix ==TRUE) {
-# 		print(mixmu.med)
+		require(plotrix)
 		plotCI(x=mixmu.med[,1], y=mixmu.med[,2], liw=(mixmu.med[,1]-mixmu.loCI[,1]), uiw=(mixmu.hiCI[,1] - mixmu.med[,1]), err="x", add=TRUE, col=c("black"),pch=19)
-# 		stop()
 		plotCI(x=mixmu.med[,1], y=mixmu.med[,2], liw=(mixmu.med[,2]-mixmu.loCI[,2]), uiw=(mixmu.hiCI[,2] - mixmu.med[,2]), err="y", add=TRUE, col=c("dimgrey"),pch=19)
 		points(mixmu.med,lwd=2)
 		if(color.plots) { points(x=x.points, y=y.points, pch=c(15,16),col=c(source.collist[[2]][1], source.collist[[1]][1])) } else { points(x=x.points, y=y.points, pch=c(15,16), col=c("black","black")) }
@@ -535,7 +522,7 @@ print('there')
 	rho.vec	<- rho.vec[3:4]
 
 	for(i in 1:2) {
-			
+			library(ellipse)
 			T.mat <- diag(2)
 			T.mat[1,2] <- rho.vec[i]
 			T.mat[2,1] <- rho.vec[i]
@@ -558,6 +545,7 @@ print('there')
   
  ##Plots observed istope values of individuals
     if(plot.ind.flag) {  
+		require(plotrix)
 		if(is.null(xlim)) { xlim <- range(c(sources[,1],X[,1])) }
 		if(is.null(ylim)) { ylim <- range(c(sources[,2],X[,2])) }
 	
@@ -612,7 +600,7 @@ curves.plot <- function(jags.1, num.sources, num.chains, color=FALSE, individual
 
   	source.colvec	<- vector('numeric', num.sources)
 	h.vec <- seq(0,250, length.out=num.sources)
-	for(i in 1:num.sources) { source.colvec[i] <- sequential_hcl(1, h = h.vec[i], c. = c(150, 10), l = c(30, 80), power = 1) }
+	for(i in 1:num.sources) { require(colorspace); source.colvec[i] <- sequential_hcl(1, h = h.vec[i], c. = c(150, 10), l = c(30, 80), power = 1) }
 
 		pop.smooth.x	<- matrix(NA, num.sources, 512)
 		pop.smooth.y	<- matrix(NA, num.sources, 512)
@@ -657,7 +645,6 @@ curves.plot <- function(jags.1, num.sources, num.chains, color=FALSE, individual
 		}#end for
   
 	for(i in 1:num.sources) {
-		print('here')
 		plot(pop.smooth.x[i,], pop.smooth.y[i,], type='l', lwd=2, xlim=c(0,1), ylim=c(0,max(ind.smooth.y[[i]])), ylab="probability density", xlab=xlab.vec[i], main="", col="white")
 		for(j in 1:individuals) {
 			if(color) { lines(ind.smooth.x[[i]][j,], ind.smooth.y[[i]][j,], type='l', lwd=2, col='grey') } else {

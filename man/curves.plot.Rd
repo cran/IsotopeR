@@ -8,7 +8,8 @@ Curves Plot
 Plots the population level proportional source estimates (solid black line), group level  and individual level estimates (blue).
 }
 \usage{
-curves.plot(jags.1, num.sources, num.chains, color = FALSE, individuals, xlab.vec, num.groups)
+curves.plot(jags.1, num.sources, num.chains, color = FALSE, individuals, xlab.vec, 
+num.groups)
 }
 %- maybe also 'usage' for other objects documented here.
 \arguments{

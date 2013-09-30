@@ -8,7 +8,8 @@ Mixing Space, 2 sources
 2 source mixing space plot used to plot the source estimations and the observations or model fits.
 }
 \usage{
-Bi.plots(jags.1, X, sources=NA, plot.mix = FALSE, plot.ind.flag = FALSE, me.flag = FALSE, color.plots=TRUE, xlab=NULL, ylab=NULL, xlim=NULL, ylim=NULL)
+Bi.plots(jags.1, X, sources=NA, plot.mix = FALSE, plot.ind.flag = FALSE, me.flag = FALSE,
+color.plots=TRUE, xlab=NULL, ylab=NULL, xlim=NULL, ylim=NULL)
 }
 %- maybe also 'usage' for other objects documented here.
 \arguments{
