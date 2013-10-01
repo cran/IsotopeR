@@ -5,7 +5,6 @@
 #Jake Ferguson: last updated 7/1/11
 
 IsoWrapper <- function(Mixtures="Necessary File", Sources="Necessary File", Concentrations="Optional File", Measurement.Error="Optional File", Discrimination.Error="Optional File", Digestibility.Factor="Optional File", output.name="SampleOutput.Rdata", mcmc.chains=3, mcmc.burn=1e3, mcmc.chainLength=1e3, mcmc.thin=100, plot.observations=TRUE,  plot.mixing.estimates=TRUE, plot.dietary.source.contributions=TRUE, color.plots=TRUE, run.parallel = TRUE) {
-    require(runjags)
     
     mcmc.chainLength    <- as.integer(mcmc.chainLength+mcmc.burn) #total number of iterations per chain (includes burnin)
 
@@ -21,16 +20,19 @@ IsoWrapper <- function(Mixtures="Necessary File", Sources="Necessary File", Conc
     nodigest.flag=0
 
     #reads in the files               
-    X           <- try((read.table(Mixtures, sep='\t', header=TRUE)), silent=TRUE) #mixture data file
+    X           <- try(as.matrix(read.table(Mixtures, sep='\t', header=TRUE)), silent=TRUE) #mixture data file
     if(class(X) == 'try-error') { stop("Mixture file not found") }
     if(dim(X)[2] == 1) {
-        X           <- (read.table(Mixtures, sep=',', header=TRUE)) #mixture data file
+        X           <- as.matrix(read.table(Mixtures, sep=',', header=TRUE)) #mixture data file
     }
 	if(dim(X)[2] == 1) {
-        X           <- (read.table(Mixtures, sep=';', header=TRUE)) #mixture data file
+        X           <- as.matrix(read.table(Mixtures, sep=';', header=TRUE)) #mixture data file
     }
+    N 		 <- dim(X)[1] #number of individuals in the sample
+    num.iso     <- dim(X)[2]-2 #number of isotopes in the sample
+
     sources     <- try((read.table(Sources,sep='\t',header=TRUE)), silent=TRUE) #source data
-	if(class(sources) == 'try-error') {stop("Source file not found")}
+    if(class(sources) == 'try-error') {stop("Source file not found")}
     if(dim(sources)[2] == 1) { 
         sources     <- (read.table(Sources,sep=',',header=TRUE)) #source data
     }
@@ -38,10 +40,11 @@ IsoWrapper <- function(Mixtures="Necessary File", Sources="Necessary File", Conc
         sources     <- (read.table(Sources,sep=';',header=TRUE)) #source data
     }
 
-    D   <- NA
-    cd.mat <- NA
-    subcd.vec <- NA
-    subcd.samples <- NA
+
+    D   			<- NA
+    cd.mat 		<- NA
+    subcd.vec 		<- NA
+    subcd.samples 	<- NA
 	if(Concentrations == 'Optional File') { 
         noconc.flag = 1
         file.flag       <- paste(file.flag,"noconc",sep='') 
@@ -54,9 +57,10 @@ IsoWrapper <- function(Mixtures="Necessary File", Sources="Necessary File", Conc
         if(dim(D)[2] == 1) {
             D           <- try(read.table(Concentrations,sep=';',header=TRUE), silent=TRUE) #source concentration data
         }
+        D <- D[order(D[,num.iso+1]),]
 
     }
-    
+
     Z <- NA
     if(Measurement.Error == 'Optional File') { 
         nome.flag = 1
@@ -84,7 +88,8 @@ IsoWrapper <- function(Mixtures="Necessary File", Sources="Necessary File", Conc
         }
         if(dim(discrim.sd)[2] == 1) {
             discrim.sd      <- (read.table(Discrimination.Error,sep=';',header=TRUE)) #file with the standard deviation of discrimination in sources
-        }        
+        }   
+        discrim.sd <- discrim.sd[order(discrim.sd[,num.iso+1]),]
     }
 
     digest <- NA
@@ -104,10 +109,7 @@ IsoWrapper <- function(Mixtures="Necessary File", Sources="Necessary File", Conc
 
     options(warn=-1)
     #extract useful info from the read in data to pass to JAGS
-    N       				<- dim(X)[1] #number of individuals in the sample
-    num.iso     		<- dim(X)[2]-2 #number of isotopes in the sample
-    num.sources 	<- nlevels(as.factor(sources[,num.iso+1]))
-
+	num.sources <- nlevels(as.factor(sources[,num.iso+1]))
 	num.groups 		<- nlevels(as.factor(X[,num.iso+1]))
 	groupnum.mat 	<- matrix(NA,num.groups,2)
 	for(i in 1:num.groups) {
@@ -140,8 +142,8 @@ IsoWrapper <- function(Mixtures="Necessary File", Sources="Necessary File", Conc
     if(file.flag == "nomenodiscrim") { 
 		if(num.groups == 1) { curr.model <- IsotopeRnomenodiscrim } else {curr.model <- IsotopeRnomenodiscrimgroup }
 	}
-
-	#prior diet proportions
+    
+    #prior diet proportions
     alpha <- rep(1,num.sources)/num.sources
 
     #center Z (observation error) around 0
@@ -175,7 +177,7 @@ IsoWrapper <- function(Mixtures="Necessary File", Sources="Necessary File", Conc
             counter <- counter+1        
         }    
         names(source.ss) <- levels(sources$source)
-
+    
 		##get array indices for the different subsources
 		subsources <- sources[,num.iso+2]
 		subsource.vec <- nlevels(as.factor(sources[,num.iso+1]))
@@ -243,35 +245,33 @@ IsoWrapper <- function(Mixtures="Necessary File", Sources="Necessary File", Conc
         discrim.var  <- (apply(discrim.sd[,-(num.iso+1)]^2,2, sum) )/dim(discrim.sd)[1]^2
         discrimvar.mat  <- diag(discrim.var)
     }
+
     #gets number of individual observations
 	dim.x	<- dim(X)
     num.inds 	<- nlevels(as.factor(X[,dim.x[2]]))
 	ind.levels		<- as.factor(X[,dim.x[2]])
     ind.counts 	<- vector('numeric',num.inds)
 
-
+	
 	counter	<- 1
-    for(i in levels(ind.levels)) {
+    for(i in ind.levels) {
         ind.counts[counter] 	<- length(which(i == X[,dim.x[2]]))
 		counter							<- counter+1
     }
 	
 	ind.array 	<- array(NA,c(num.iso,num.inds,max(ind.counts)))
 	counter	<- 1
-	
-
-    for(i in levels(ind.levels)) {
-		temp	<- which(X[,dim.x[2]]==i)
-        ind.array[1:num.iso,counter,1:length(temp)] 	<- t(X[which(X[,dim.x[2]]==i), 1:num.iso])
+    for(i in ind.levels) {
+        ind.array[1:num.iso,counter,] 	<- t(X[which(X[,dim.x[2]]==i), 1:num.iso])
 		counter												<- counter+1
     }
 
-	rho.flag	<- ifelse(num.iso ==2, 1, 0)
-	#individual observation id's
-    N <- num.inds
+   rho.flag	<- ifelse(num.iso ==2, 1, 0)
+   #individual observation id's
+   N <- num.inds
 
-    jags.dump <- list(muz=muz, ind.counts=ind.counts, ind.array=ind.array,N=N, num.sources=num.sources, num.iso=num.iso, Z=Z, dmu.prior.mu=dmu.prior.mu, Nz=Nz, mu.prior.mu=mu.prior.mu, mu.prior.cov=mu.prior.cov, dmu.prior.tau=dmu.prior.tau, alpha.clr=alpha.clr,  discrimvar.mat=discrimvar.mat, subsource.vec=subsource.vec, subsource.samples=subsource.samples, source.mat=source.mat, cd.mat = cd.mat, subcd.vec=subcd.vec, subcd.samples=subcd.samples, num.groups=num.groups, groupnum.mat=groupnum.mat, rho.flag=rho.flag)
-
+   jags.dump <- list(muz=muz, ind.counts=ind.counts, ind.array=ind.array,N=N, num.sources=num.sources, num.iso=num.iso, Z=Z, dmu.prior.mu=dmu.prior.mu, Nz=Nz, mu.prior.mu=mu.prior.mu, mu.prior.cov=mu.prior.cov, dmu.prior.tau=dmu.prior.tau, alpha.clr=alpha.clr,  discrimvar.mat=discrimvar.mat, subsource.vec=subsource.vec, subsource.samples=subsource.samples, source.mat=source.mat, cd.mat = cd.mat, subcd.vec=subcd.vec, subcd.samples=subcd.samples, num.groups=num.groups, groupnum.mat=groupnum.mat, rho.flag=rho.flag)
+    
    if(noconc.flag) {
         jags.rem    <- which( names(jags.dump)  == 'cd.mat' |  names(jags.dump)  == 'dmu.prior.mu' |  names(jags.dump)  == 'dmu.prior.tau' |  names(jags.dump)  == 'subcd.samples' |  names(jags.dump)  == 'subcd.vec')
         jags.dump <- jags.dump[-jags.rem]
@@ -308,8 +308,8 @@ IsoWrapper <- function(Mixtures="Necessary File", Sources="Necessary File", Conc
 		parallel.state <- "interruptible"
 		jags.params <- c(jags.params, "dic")#dic can only be run in when nonparallel calculations are used.
 	}
-	
-	jags.out <- run.jags(model=curr.model, monitor=jags.params, data=jags.dump, n.chains=mcmc.chains, burnin=mcmc.burn, sample= (mcmc.chainLength-mcmc.burn), thin=mcmc.thin, psrf.target=1.5, check.conv=TRUE, plots=FALSE, check.stochastic=FALSE,  monitor.deviance=TRUE, silent.jags=FALSE, method=parallel.state)
+
+	jags.out <- run.jags(model=curr.model, monitor=jags.params, data=jags.dump, n.chains=mcmc.chains, burnin=mcmc.burn, sample=(mcmc.chainLength-mcmc.burn), thin=mcmc.thin, psrf.target=1.5, check.conv=TRUE, plots=FALSE, check.stochastic=FALSE,  monitor.deviance=TRUE, silent.jags=FALSE, method=parallel.state)
 
 	r.est <- jags.out$psrf$psrf[,1]
 	jags.output.mat <- cbind(jags.out$summary$statistics[,1:2], jags.out$summary$quantiles, r.est)
@@ -382,15 +382,13 @@ load.prev.func <- function(file.name="SampleOutput.Rdata", plot.observations=TRU
 }
 
 IsotopeR    <- function() {
-    require(fgui) #used to run JAGS from R
+#     require(fgui) #used to run JAGS from R
 
     if(interactive()) {
 		fguiWindow( basicMenu=FALSE, title="IsotopeR", text="Please choose an option from the Analysis menu." )
 		win <- mgui(IsoWrapper, argFilter = list(Mixtures="{{} {.csv}}", Sources="{{} {.csv}}", Concentrations="{{} {.csv}}", Measurement.Error="{{} {.csv}}",   Discrimination.Error="{{} {.csv}}", Digestibility.Factor="{{} {.csv}}"), argText = list(mcmc.chains="number of chains", mcmc.burn="MCMC burnin", mcmc.chainLength="MCMC runs", mcmc.thin="thinning rate", output.name="Output file"), argOption = list(run.parallel=c("TRUE", "FALSE"), plot.observations=c("TRUE","FALSE"), plot.dietary.source.contributions= c("TRUE", "FALSE"), plot.mixing.estimates=c('TRUE','FALSE'), color.plots=c("TRUE", "FALSE")), closeOnExec=TRUE, title=c("Analysis","New Run"), exec="Run IsotopeR", helpsFunc="IsoWrapper", output=NULL)
 		
 		win <- mgui(load.prev.func, title=c("Analysis","Load Previous Run"), argFilter= list(file.name="{{} {.Rdata}}"), argOption = list(plot.observations=c("TRUE","FALSE"), plot.dietary.source.contributions= c("TRUE", "FALSE"), plot.mixing.estimates=c('TRUE','FALSE'), color.plots=c("TRUE", "FALSE")), closeOnExec=TRUE , exec="Plot", output=NULL, helpsFunc="IsoWrapper")
-# 		print(win)
-		
     }
 
 

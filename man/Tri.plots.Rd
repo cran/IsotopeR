@@ -7,7 +7,8 @@ Mixing Space, 3 sources
 3 source mixing space plot used to plot the source estimations and the observations or model fits.
 }
 \usage{
-Tri.plots(jags.1, X, sources=NA, plot.mix = FALSE, plot.ind.flag = FALSE, me.flag = FALSE, color.plots=TRUE, xlab=NULL, ylab=NULL)
+Tri.plots(jags.1, X, sources=NA, plot.mix = FALSE, plot.ind.flag = FALSE, 
+me.flag = FALSE, color.plots=TRUE, xlab=NULL, ylab=NULL)
 }
 \arguments{
 \item{jags.1}{A jags object, output from the runjags package.}

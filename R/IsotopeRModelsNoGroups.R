@@ -513,9 +513,9 @@ IsotopeRnoconcnodiscrim <- "model {
   }
   
   
-  ###########################
-  ##Proportion estimamation##
-  ###########################
+  #########################
+  ##Proportion estimation##
+  #########################
   ## this is the global mean
   for(i in 1:num.sources) {mu[i] ~ dnorm(alpha.clr[i], 0.001)} 
   pop.invSig2 ~ dgamma(.01,.01)
@@ -1935,8 +1935,8 @@ IsotopeRnome <- "model {
     ##build source correlation matrix
    for(sourcex in 1:num.iso) {
       for(sourcey in 1:num.iso) {
- 		  rho.source[sourcex,sourcey,source] ~ dunif(-0.99,0.99);
-		}
+	   rho.source[sourcex,sourcey,source] ~ dunif(-0.99,0.99);
+	 }
     }
     for(sourcex in 2:(num.iso)) {
       for(sourcey in 1:(sourcex-1)) {

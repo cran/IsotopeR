@@ -1,6 +1,8 @@
 Known Issues:
 *Cannot estimate source correlation when more than 2 isotopes are estimated. This is due to computational issues in jags. For now source correlations are set to 0 when estimating more than 3 isotopes.
 *Cannot estimate diet contributions when only 1 isotope is used.
+v0.4.7 
+*Fixed bug in model with grouped observations and measurement error
 
 v0.4.6
 *fixed bug in grouping multiple observations together for repeated observation model.

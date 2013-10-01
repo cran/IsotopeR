@@ -4,7 +4,8 @@
 \title{load.prev.func}
 
 \description{A function for Isotoper that is used to plot output from previous runs of IsotopeR.}
-\usage{load.prev.func(file.name="SampleOutput.Rdata", plot.observations=TRUE, plot.mixing.estimates=TRUE, plot.dietary.source.contributions=TRUE, color.plots=TRUE)}
+\usage{load.prev.func(file.name="SampleOutput.Rdata", plot.observations=TRUE, 
+plot.mixing.estimates=TRUE, plot.dietary.source.contributions=TRUE, color.plots=TRUE)}
 \arguments{
 	\item{file.name}{The .Rdata file from a previous run of IsotopeR.}
 	\item{plot.observations}{This will make a plot of the mixing space, meaning the estimated sources and source concentrations, along with the mixture observations. If measurement error data is provided, the estimated 95 percent CI's will be displayed.}
