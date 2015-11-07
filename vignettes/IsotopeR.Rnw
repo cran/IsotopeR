@@ -2,7 +2,7 @@
 %% Do not edit unless you really know what you are doing.
 \documentclass{article}
 \usepackage[utf8]{inputenc}
-\usepackage{url}
+\usepackage{float}
 % \raggedright
 %\VignetteIndexEntry{IsotopeR}
 \usepackage{graphicx}
@@ -31,8 +31,8 @@
  {\usepackage{color}}{}
 % \usepackage{url}
 
-% \author{Jack Hopkins \& Jake Ferguson}
-\title{ A user's guide to estimating dietary parameters using IsotopeR 0.4}
+\author{Jack Hopkins \& Jake Ferguson}
+\title{IsotopeR 0.5}
 \newcommand{\code}[1]{{\tt #1}}
 \date{\today}
 \usepackage{Sweave}
@@ -40,329 +40,267 @@
 \makeatother
 
 \begin{document}
+\SweaveOpts{concordance=TRUE}
 \maketitle
+
+\begin{figure}[!h]
+\begin{centering}
+\includegraphics[width=0.6\textwidth]{Fig1} 
+\par\end{centering}
+\label{fig:NewRun} 
+\end{figure}
+\newpage
 \tableofcontents{}\newpage{}
 
-IsotopeR is a stable isotope mixing model used to estimate dietary
-parameters at the population-, group-, and individual-level. IsotopeR
-allows users to include a number of  components common to stable isotope models  that are not currently available in a single statistical
-package. We intend to make the IsotopeR user interface simple and intuitive and we welcome any feedback (jbhopkins3@gmail.com) that
-will help to continue to refine the tool. 
+IsotopeR is a hierarchical stable isotope mixing model used to estimate dietary parameters at the population-, group-, and individual-level. The IsotopeR design includes a variety of features described below. We intend to continue to make IsotopeR’s graphical user interface (GUI) simple and intuitive, and we welcome any feedback that will help refine the tool. With that said, proceed with caution, as this ecological tool can be dangerous if not used properly.  
 
 
-\section*{Installing IsotopeR}
+\section{Installing IsotopeR}
 
 \addcontentsline{toc}{section}{Installing IsotopeR} 
 \begin{itemize}
-\item Install JAGS from \url{http://sourceforge.net/projects/mcmc-jags/}
-(IsotopeR has been tested on JAGS v2.2.0, 2.1.0 and 1.0.4 under R
-2.12 and 2.13) 
-\item Install IsotopeR and it's dependencies from CRAN. Type the following
-to install from the command line: \begin{verbatim} > install.packages("IsotopeR", dep=T) \end{verbatim} % \end{itemize}
-
-\item Mac users must also install the tcltk software, available at: \url{http://cran.r-project.org/bin/macosx/tools/}.
-%the following packages from CRAN: fgui, runjags, coda, ellipse, plotrix, and colorspace. Mac users must also install the tcltk software, available at: \url{http://cran.r-project.org/bin/macosx/tools/}\
-
+\item Install JAGS from http://sourceforge.net/projects/mcmc-jags/ (IsotopeR has been tested on JAGS v2.2.0, 2.1.0 and 1.0.4 under R 2.12 and 2.13)
+\item Install “IsotopeR” and the following dependencies (packages: fgui, runjags, ellipse, plotrix, colorspace) using the following code in R: \begin{verbatim} > install.packages(c("IsotopeR"), dep=T) \end{verbatim}
+\begin{itemize}
+\item If using a three isotope system 3d plots can also be made using the "rgl" packages. To install: \begin{verbatim} > install.packages(c("rgl"), dep=T) \end{verbatim} 
+\end{itemize}
 \end{itemize}
 
-\subsection*{{\Large Using IsotopeR}}
+\section{Formatting input data files}
+When formatting your input data files (names and contents of each file described below) use the same format as the example data. The easiest way to ensure the data is entered correctly is to cut and paste your raw data into each .csv file (not .xls) provided here and save. 
 
-\addcontentsline{toc}{subsection}{Using IsotopeR} Here we show how
-to use IsotopeR by analyzing an example dataset. Once IsotopeR is
-installed you can download an example dataset \url{http://people.biology.ufl.edu/troutinthemilk/R_software_files/IsotopeR_Data.zip}
-and extract the data files (Note: We recommend you format your project
-data using these files as templates).
-
-Load IsotopeR and view the graphical user interface (Fig.1) using
-the following R code: 
-\begin{verbatim}> library(IsotopeR)
-> IsotopeR() \end{verbatim} 
+\subsection{Mixtures}
+The first n columns in this input data file are the isotope values for consumers tissues, where n is the number of stable isotope ratios used in the analysis. The last two columns designate the group (e.g., sub-population, sex) and individual assignments. If there is no group structure, then column n + 1 will contain “1" for all individuals (see example below); if designating multiple groups, the group identity will be determined by the variable in the column. Individuals in the second group should be designated as “2", the third group as “3", etc. Individuals in second should be entered after individuals in the first group and so on. The last column identifies each individual. If you have no repeated measurements for individuals, then each individual should be designated by a unique integer (e.g., 1, 2, 3. . .; see example below), whereas individuals with repeated measures should be designated using the same number (e.g., 1, 1, 1, 2, 2, 2. . . ). Note that IsotopeR does not require consecutive integers for the individual column; however the estimated values are reported as consecutive, so it may be difficult to match the input to the output if you use nonconsecutive integer labels in the data file.
 \begin{figure}[!h]
 \begin{centering}
-\includegraphics[width=0.6\textwidth]{Screenshot-IsotopeR} 
+\includegraphics[width=0.4\textwidth]{Fig2} 
 \par\end{centering}
-
-\caption{Main IsotopeR GUI window.}
-
-
-\label{fig:homescreen} 
 \end{figure}
 
-
-If everything is correctly installed, the main IsotopeR GUI \ref{fig:homescreen}
-window will appear.
-
-Begin a new run by selecting \verb+Analysis -> New Run+ from the
-menu. A new window resembling the image in Figure \ref{fig:datanalysis}
-will appear.
-
-For the example analysis we will use 4 of the 6 data input files located
-in the data folder: Mixtures, Sources, SourceCD, and MeasurementError
-(Note: Click the question mark next to each field to get detailed
-information about each file; this information is also available below).
-To enter data input files, click on each button on the left hand side
-of the IsotopeR analysis window; this will navigate you to your hard
-drive and allow you to select the appropriate data file. 
-
-For the first run, upload Mixtures, Sources, and MeasurementError.
-Control parameters and plot options are located below the file upload
-section of the IsotopeR GUI. Do not change any entries for the control
-parameters or switch off any plots (i.e., keep IsotopeR in default
-mode) except for MCMC runs; in the interest of time, change the default
-in this field to 1,000. Click the \verb+Run IsotopeR+ button and
-the estimation procedure will begin. A progress bar will appear in
-the R console. When the estimation process has terminiated, plots
-will appear, and parameter estimates and diagnostic output will appear
-in the R console. These estimates will also be automatically written
-to a text file in your current working directory in R. In this case,
-the file is called \verb+SampleOutput.txt+. 
+\subsection{Sources}
+Each source is a sample of a consumer's main foods, which could be a sample of the same species or an aggregate of similar taxa. The first n columns in this input data file are the isotope values for each sampled food corrected for isotopic discrimination (i.e., add the appropriate discrimination factor to each observation), where n is the number of isotopes used in the analysis. It is important to make sure that isotope values are in the same order as the mixture data file (e.g., column 1 in both the Mixtures and Sources file should contain $\delta^{13}$C values). The next column (n + 1) identifies the source to which the sampled food belongs. Unlike other columns, you can use the actual names (text, not integers) of the food sources (e.g., Source 1, Source 2, Source 3). The last column (subsource) identifies different foods within each source (e.g., elk, deer, bison); this feature assigns equal weight to each specified subsource.
 \begin{figure}[!h]
 \begin{centering}
-\includegraphics[width=0.5\textwidth]{Screenshot-New_Run} 
+\includegraphics[width=0.4\textwidth]{Fig3} 
 \par\end{centering}
-
-\caption{IsotopeR analysis window.}
-
-
-\label{fig:datanalysis} 
 \end{figure}
 
-
-IsotopeR also has the ability to open old analyses and build plots
-without having to rerun the estimation. This is especially useful
-for more complex modeling activities and larger datasets that may
-take a long time to run. Previous analyses can be opened from the
-\verb+Analysis -> Load Previous Run+ menu (in main IsotopeR GUI window;
-Figure \ref{fig:prevrun}). Load the previous analysis, \verb+SampleOutput.Rdata+,
-click FALSE for color plots, and run IsotopeR; this will create grayscale
-plots for publication. For the last example run, upload the 4 input
-files listed above and run IsotopeR. Compare figures and parameter
-estimates when running an analysis that includes and excludes source
-concentrations.  
+\subsection{DiscrimSD}
+This input data file contains the standard deviations associated with the estimated average discrimination factors measured in controlled diet studies. The first n columns are the standard deviations associated with each mean discrimination value for the associated stable isotope ratio. The last column denotes the source identification for the standard deviations, which must match those specified in the Mixtures and Sources files.
 \begin{figure}[!h]
 \begin{centering}
-\includegraphics[width=0.6\textwidth]{Screenshot-Load_Previous_Run} 
+\includegraphics[width=0.3\textwidth]{Fig4} 
 \par\end{centering}
-
-\caption{Previous run window.}
-
-
-\label{fig:prevrun} 
 \end{figure}
 
-
-
-\section*{Input files}
-
-\addcontentsline{toc}{section}{Input files} \textbf{Mixtures}: The
-first $n$ columns in this data input file are the isotope values
-associated with consumers, where $n$ is the number of isotopes used
-in the analysis. The last two columns designate the group and individual
-assignments. If there is no group structure, then column $n+1$ will
-contain “1” for all individuals. If designating multiple groups, the
-group identity will be determined by the variable in the column. Individuals
-in the first group should be designated as “1,” the second group as
-“2,” etc. The last column identifies each individual. If you have
-no repeated measurements for individuals, then each individual should
-be designated by a unique integer (e.g., 1, 2, 3…); individuals with
-repeated measures should be designated using the same number (e.g.,
-1, 1, 1, 2, 2, 2…). Note that IsotopeR does not require consecutive integers for the individual column, however the estimated values are necessarily reported as consecutive, so it may be difficult to map the input to output if you use nonconsecutive integer labels in the data file.
-
-\begin{table}[!h]
-\centering{}%
-\begin{tabular}{llll}
-$\delta$C  & $\delta$N  & group  & individual\tabularnewline
-\hline 
--22.1  & 5.2  & 1  & 1\tabularnewline
--22.2  & 5.5  & 1  & 2\tabularnewline
--22.0  & 5.0  & 1  & 3 \tabularnewline
-\end{tabular}\caption{Mixture data example}
-\end{table}
-
-
-\textbf{Sources}: Each source is a sample of a consumer’s dietary
-items (may be a sample of the same species or an aggregate of species).
-The first $n$ columns in this data input file are the isotope values
-associated with each sampled dietary item, where $n$ is the number
-of isotopes used in the analysis. Isotope values need to be in the
-same order as the mixture data file (e.g., column 1 in Mixtures and
-Sources contain $\delta^{13}C$ values). The next column ($n+1$)
-identifies the source to which the sampled dietary item belongs. The
-last column (subsource) identifies different species or taxa within
-each source aggregate; this feature assigns equal weight to each subsource.
-\begin{table}[!h]
-\centering{}%
-\begin{tabular}{llll}
-$\delta$C  & $\delta$N  & source  & subsource\tabularnewline
-\hline 
--22.2  & 2.9  & plants  & 1\tabularnewline
--23.0  & 2.6 & plants  & 1\tabularnewline
--22.6  & 3  & plants  & 2\tabularnewline
--28.4 & 8.1  & ungulates  & 1\tabularnewline
--27.9  & 7.9  & ungulates  & 1 \tabularnewline
-\end{tabular}\caption{Source data example}
-\end{table}
-
-
-\textbf{SourcesCD}: The first $n$ columns in this data input file
-are the concentration data for each sample, where $n$ is the number
-of elemental concentrations used in the analysis (e.g., {[}C{]}, {[}N{]}).
-Columns with elemental concentrations need to match Sources and Mixtures
-(e.g., column 1 in this file and Sources files contain {[}C{]} and
-$\delta^{13}C$ values, respectively). Column $n+1$ identifies the
-source in which the set of concentrations belong. The last column
-links sampled dietary item concentrations to each subsource. This
-feature assigns equal weight to each sub-source’s elemental concentrations
-and should be consistent with Sources file. 
-\begin{table}[!h]
+\subsection{SourcesCD}
+The first n columns in this input data file are the digestible elemental concentrations for each sample (or the raw values, which are corrected using the Digest file described below), where n is the number of digestible elemental concentrations used in the analysis (e.g., [C], [N]). Columns with elemental concentrations need to match those in the Sources file (e.g., column 1 in this file and Sources files contain [C] and $\delta^{13}$C values, respectively). Column n + 1 identifies the source (use the same text as in the Mixtures, Sources, DiscrimSD files) in which the set of concentrations belong. The last column links sampled food concentrations to each subsource. This feature assigns equal weight to each subsource's digestible elemental concentrations and should be consistent with the Sources file.
+\begin{figure}[!h]
 \begin{centering}
-\begin{tabular}{llll}
-{[}C{]}  & {[}N{]}  & source  & subsource\tabularnewline
-\hline 
-45  & 4  & plants  & 1\tabularnewline
-45 & 5 & plants  & 1\tabularnewline
-45 & 5  & plants  & 2\tabularnewline
-40 & 13  & ungulates  & 1\tabularnewline
-42 & 12  & ungulates  & 1 \tabularnewline
-\end{tabular}
+\includegraphics[width=0.4\textwidth]{Fig5} 
 \par\end{centering}
+\end{figure}
 
-\caption{Source concentration example.}
-\end{table}
-
-
-\textbf{Measurement Error}: This is the error associated with mass
-spectrometry/EA analysis. This data input file contains all isotopic
-measurements for standards. Isotope values need to be in the same
-order as other data files (e.g., column 1 in Measurement Error, Mixtures,
-and Sources files contain $\delta^{13}C$ values). 
-\begin{table}[!h]
+\subsection{MError}
+This is the error associated with mass spectrometry/EA analysis. This input data file contains all isotopic measurements for standards. Isotope values need to be in the same order as other data files (e.g., column 1 in Mixtures, Sources, and Measurement Error files contain $\delta^{13}$C values).
+\begin{figure}[!h]
 \begin{centering}
-\begin{tabular}{ll}
-$\delta$C  & $\delta$N \tabularnewline
-\hline 
--12.7  & 5.5\tabularnewline
--12.6  & 5.4\tabularnewline
--12.5  & 5.5\tabularnewline
--12.5  & 5.4\tabularnewline
-\end{tabular}
+\includegraphics[width=0.2\textwidth]{Fig6} 
 \par\end{centering}
+\end{figure}
 
-\caption{Measurement error example.}
-\end{table}
-
-
-\textbf{DiscrimSD}: This data input file contains the standard deviations
-associated with the estimated average discrimination factors measured
-in controlled diet studies. The first $n$ columns are the standard
-deviations associated with each mean discrimination value for the
-associated isotope. The last column denotes the source identification
-for the standard deviations. 
-\begin{table}[!h]
+\section{Running IsotopeR}
+\subsection{Opening the IsotopeR GUI}
+After installing the packages above for the first time in R, you can open the IsotopeR GUI with the following code: 
+\begin{verbatim}
+> library(IsotopeR) # loads packages (Fig. 1)
+> IsotopeR() #open Graphical User Interface (Fig. 2)
+\end{verbatim}
+If correctly installed (Figure 1), the main menu for the IsotopeR GUI will appear as shown in Figure 2. 
+\begin{figure}[!h]
 \begin{centering}
-\begin{tabular}{lll}
-$\delta$C  & $\delta$N  & source \tabularnewline
-\hline 
-1.2  & 1.0  & plants \tabularnewline
-0.6  & 0.5 & ungulates\tabularnewline
-0.4  & 0.5  & insects \tabularnewline
-\end{tabular}
+\includegraphics[width=0.4\textwidth]{Fig7} 
 \par\end{centering}
-
-\caption{Discrimination standard deviation example.}
-\end{table}
-
-
-\textbf{Digest}: This input file contains the digestibility of different
-sources. The first $n$ columns contain the digestibility for $n$
-source isotopes. The last column is the source identification code
-defined in Sources. 
-\begin{table}[!h]
+\label{fig:Install}
+\caption{IsotopeR library installed and loaded}
+\end{figure} 
+\begin{figure}[!h]
 \begin{centering}
-\begin{tabular}{llll}
-digestC  & digestN  & source & \tabularnewline
-\hline 
-0.5 & 0.9  & plants  & \tabularnewline
-0.6 & 1 & ungulates & \tabularnewline
-0.5 & 1  & insects  & \tabularnewline
-\end{tabular}
+\includegraphics[width=0.4\textwidth]{Fig8} 
 \par\end{centering}
+\label{fig:Main}
+\caption{IsotopeR GUI main window}
+\end{figure}
 
-\caption{Digestibility example}
-\end{table}
+To enter the input data files, click on each button on the left hand side of the IsotopeR GUI (Figure 3); this will navigate you to your hard drive and allow you to select the appropriate data file.
 
+\subsection{Loading input data files}
+To upload input data files, select \textbf{Analysis $\rightarrow$ New Run} from the menu (Figure 2). A new window resembling the image in Figure 3 will appear. Here, you will enter your stable isotope data. 
+\begin{figure}[!h]
+\begin{centering}
+\includegraphics[width=0.4\textwidth]{Fig1} 
+\par\end{centering}
+\label{fig:Input}
+\caption{Data input screen for the IsotopeR GUI}
+\end{figure}
 
+To enter the input data files, click on each button on the left hand side of the IsotopeR GUI (Figure 3); this will navigate you to your hard drive and allow you to select the appropriate data file.
 
-\section*{Control Parameters}
+\begin{figure}[!h]
+\begin{centering}
+\includegraphics[width=0.4\textwidth]{Fig9} 
+\par\end{centering}
+\end{figure}
 
-\addcontentsline{toc}{section}{Control Parameters} A user can change the control parameters for each analysis. Each field is described below:
+\subsection{Control parameters and plotting options}
+
+\textbf{Number of [Markov] chains}: The number of independent Markov chains for sampling the parameter space and computing posterior quantities.
+
+\textbf{MCMC burn-in}: The length of the chain discarded at the beginning of the run, so that the effect of initial values on the posterior inference is minimized. This is interpreted as the length of time it takes for the MCMC to stabilize.
+
+\textbf{Thinning rate}: This feature reduces the sample size of each MCMC run by keeping every kth draw from each chain, reducing autocorrelation in the chain.
+\newpage
+\textbf{Plot observations}: Plots all raw isotope values for consumers and their foods.
+\begin{figure}[H]
+\begin{centering}
+\includegraphics[width=0.9\textwidth]{Fig10} 
+\par\end{centering}
+\end{figure}
+
+\newpage
+\textbf{Plot mixing estimates}: Plots the estimated isotopic mixing space (the area contained in the space formed by lines connecting sources in a multivariate plot). The isotopic mixing space depicts the mechanistic relationship between consumers and their foods (i.e., the environment of consumers). Sources are denoted by dashed ovals (2 SD) and gray lines loosely define how proportional diet contributions were calculated. Note that mixtures are displayed differently in the observation and estimated mixing space plots because IsotopeR estimated these isotope values for consumers (with error bars denoting 1 SD) as well as their sources, as they are random variables not fixed.
+\begin{figure}[H]
+\begin{centering}
+\includegraphics[width=0.9\textwidth]{Fig11} 
+\par\end{centering}
+\end{figure}
+
+\newpage
+\textbf{Plot dietary source contributions}: Plots the marginal posterior probability distribution for each major food sources. Generally, steep and narrow posteriors for populations or groups denote low variability of resource use, whereas short and wide posteriors suggest higher dietary plasticity. A large range of median posteriors for individuals, with little overlap, suggests consumers have heterogeneous diets. The width of posteriors is also related to the variability of isotope values for each source and their positions relative to one another in the isotopic mixing space. An increase in the isotopic variation of an source or the overlap of isotope values for sources may decrease the precision of dietary estimates, increasing credible intervals. Such overlap can lead to the multimodality observed in posterior distributions. Relatively flat, overlapping posteriors for individuals suggest poor precision overall.
+\begin{figure}[H]
+\begin{centering}
+\includegraphics[width=0.9\textwidth]{Fig12} 
+\par\end{centering}
+\end{figure}
+
+\subsection{Parameter estimates}
+Parameter estimates will be automatically written to a text file (SampleOutput.txt) and an image file (.Rdata file), both located in the current working directory in R. The .Rdata file name is specified in the field \textbf{Output file} (in the middle of the IsotopeR GUI; Figure 3). The files are formatted in a matrix with rows given by the parameter names (defined below). The first two columns are the mean and standard deviation of the median posterior probability distribution. Credible intervals described as quantiles (2.5\%, 25\%, 50\%, 75\%, 97.5\%) for this sampling distribution are reported in respective columns, followed by the Rhat values, which is a metric of convergence that should be less than 1.2 or the model should be rerun with a longer MCMC chain.
+
+\textit{parameter names:}
 \begin{description}
-\item [{Number of chains:}] The number of independent Markov chains. 
-\item [{MCMC burnin:}] The length of the chain discarded at the beginning
-of the run. This is interpreted as the length of time it takes for
-the MCMC to stabilize. 
-\item [{MCMC runs:}] The total number of iterations per chain, which includes
-burnin. 
-\item [{Thinning rate:}] Reduces the sample size to every $n^{th}$ iteration;
-this is used to reduce autocorrelation in the chain. 
-\item [{Run parallel}:] If TRUE, runs mcmc chains in parallel on multicore machines. Note that the Deviance Information Criterion (DIC) cannot be reported when using the parallel feature and so it is automatically turned off when this option is TRUE. Otherwise DIC is automatically reported.
+\item{mu.source($z$,$i$):} Mean isotope value for food source $z$, isotope $i$
+
+\item{sd.source($z$,$i$):}
+Mean isotope value of the standard deviation for food source $z$, isotope $i$
+
+\item{rho.mat($z$,$i$,$j$):}
+Correlation between isotopes $i$ and $j$ for food source $z$
+
+\item{mu.conc($z$,$i$):}
+Mean elemental concentration for food source $z$, isotope $i$
+
+\item{sd.conc($z$,$i$):}
+Mean of the standard deviation for food source $z$, isotope $i$
+
+\item{mu.mix($x$,$i$):} Isotope value for individual $x$, isotope $i$
+
+\item{p($x$,$z$):} Proportional dietary contribution for individual $x$, food source $z$
+
+\item{p.pop($z$):} Population-level proportional dietary contribution for food source $z$
+
+\item{sd.res($i$):} The residual error term (standard deviation) for isotope $i$
+
+\item{sd.me($i$):} Measurement error (standard deviations) for isotope $i$
+
+\item{p.group ($k$,$z$):} Proportional dietary contribution for group $k$, food source $z$
 \end{description}
 
-\section*{Error messages}
-A user may receive several warnings during a model run. These errors
-are associated with JAGS and are not always well documented by the package
-maintainers. Generally, these errors are related to the model not
-converging. Therefore, you may need to rerun the model with more runs
-chains and may also need a higher thinning rate.
+%\addcontentsline{toc}{subsection}{Using IsotopeR} Here we show how
+\subsection{Error messages}
+A user may receive several warnings during a model run. These errors are associated with JAGS and are not always well documented by the package maintainers. Generally, these errors are related to the model not converging. Therefore, you may need to rerun the model with more chains and may also need a higher thinning rate. Further details on the JAGS program can be found in the JAGS manual (http://sourceforge.net/projects/mcmc-jags/). A gentle introduction is provided in the document by N. Thompson Hobbes 'An Ecological Modeler's Primer on JAGS'. JAGS model syntax is compatible with the BUGS language. Users unfamiliar with the BUGS language can find many tutorials at the WinBUGS site (http://www.mrc-bsu.cam.ac.uk/bugs/).
 
-Further details on the JAGS program can be found in the JAGS manual
-and available for download at \url{http://sourceforge.net/projects/mcmc-jags/}.
-A gentle introduction is provided in the document by N. Thompson Hobbes \href{http://classes.warnercnr.colostate.edu/nr575/files/2011/01/A_Primer_on_JAGS_for_Ecological_Modelers_III1.pdf} {'An Ecological Modeler's Primer on JAGS'},. JAGS model syntax is compatible with the BUGS language.
-Users unfamiliar with the BUGS language can find many tutorials at
-the WinBUGS site \url{http://www.mrc-bsu.cam.ac.uk/bugs/}.
+\section{Examples}
+IsotopeR can estimate dietary parameters for $\geq$ 2 isotope ratios ($n$) and $\geq n + 1$ sources. Estimating proportional dietary contributions for $> n + 1$ sources generally does not result in unique solutions; therefore, for simplicity, we restrict the following example analyses to 3- and 3-isotope models. Please download the input data files for the following analysis.
+\subsection{2-isotope model}
+\subsubsection{Standard model}
+\begin{itemize}
+\item Load the following input data files from the 2-isotope folder: Mixtures.csv, and  Sources.csv. 
+\item Keep IsotopeR in default mode by not changing any entries for control parameters or the plots (all should read TRUE).
+\item Click the \textbf{Run IsotopeR} box.
+\item The estimation procedure will begin as indicated by the text: “Calling the simulation... (this might take some time)”. When the estimation process has finished, plots will appear, and parameter estimates and diagnostic output will be provided in the R console. 
+\end{itemize}
 
+\subsubsection{Discrimination error}
+Stable isotope discrimination factors (small offsets of stable isotope values between dietary sources and animal tissues due to metabolic and digestive processes, as determined from studies of animals on controlled diets; e.g., expressed as $\Delta^{13}$C, $\Delta^{15}$N) \textbf{NEED to be added to the isotope values of each food source before running an analysis}. Including the error associated with measuring the discrimination factors derived from controlled studies is also important to accurately estimate proportional dietary contributions for consumers using IsotopeR.
 
-\section*{Output}
+\begin{itemize}
+\item Load the following input data files from the 2-isotope folder: Mixtures, Sources, and DiscrimSD.
+\item Click the \textbf{Run IsotopeR} box. 
+\item Examine the output and plots. The estimated sources in the isotopic mixing space have become larger (top right) and posteriors (bottom right) are wider than an analysis without discrimination error (left plots). 
+\end{itemize}
+\textbf{Jack plots here}
 
-\addcontentsline{toc}{section}{Output} After a run is finished results
-will be saved to an image file (\code{.Rdata} file) and a text
-file (\code{.txt}), both located in your current working directory.
-Files are formatted in a matrix with rows given by the parameter names
-(defined below). The first two columns are the mean and standard deviation
-of the posterior probability distribution. Quantiles (2.5\%, 25\%,
-50\%, 75\%, 97.5\%) for this sampling distribution are reported in
-respective columns, followed by the Rhat values (a metric of convergence
-that should be less than 1.2 or the model should be rerun with a longer
-MCMC chain).
+\subsubsection{Measurement error}
+Although the effect of measurement error on parameter estimates is often negligible, this source of isotopic variation is inherent to stable isotope analysis. To include this source of error in your analysis, follow the directions under Formatting input data files (above). 
 
+\begin{itemize}
+\item Load the following input data files from the 2-isotope folder: Mixtures, Sources, DiscrimSD, and MeasurementError 
+\item Click the Run IsotopeR box
+\item Examine the output and plots. The plots and population estimates look very similar to the last analysis except that there are error bars on mixtures in the Observations plot. Error bars appear on raw mixtures because including measurement error specifies error associated with each mixture prior to the analysis. Although the inclusion of measurement error should be considered because this source of error exists, we note that it is less important to include in an analysis if researchers have repeated observations for mixtures. In this latter case, a user will also see error bars on mixtures in the observations plot. 
+\end{itemize}
 
-\subsection*{Plots}
+\subsubsection{Digestable elemental concentrations}
+Not accounting for differences in the digestibility of elements among food sources (i.e., concentration dependence) can severely bias dietary estimates. In particular, the relative differences in the elemental concentrations between sources of plant and animal matter ingested by animals can cause the mixing lines to bend between sources, creating a nonlinear mixing space, which effects the relationship (and parameterization) between consumers and their foods. Here, we add new digestible concentration data to our analysis and run IsotopeR with and without using measurement error.
 
-\addcontentsline{toc}{subsection}{Plots} 
-\begin{description}
-\item [{plot observations:}] A plot of source and mixture isotope values.
-\item [{plot mixing estimates:}] A plot of the estimated mixing space.
-Estimated sources and mixtures are displayed with their 95\% credible
-intervals. 
-\item [{plot dietary source contributions:}] A plot of the smoothed histograms
-of the population-level (solid), group-level (dashed), and individual-level
-(transparent) estimated dietary contributions. 
-\end{description}
+\begin{itemize}
+\item Load the following input data files from the 2-isotope folder: Mixtures, Sources, DiscrimSD, MeasurementError, and SourcesCD.
+\item Change MCMC runs from 1000 to 5000 and click the \textbf{Run IsotopeR} box.
+\item Examine the output and plots. Notice that the estimated isotopic mixing space has morphed dramatically as a result of including the concentration dependence data in the analysis. Changes to the isotopic mixing space more accurately illustrates the relationship between consumers and their foods (their environment), leading to more accurate parameter estimates as shown in the posteriors plot below.
+\end{itemize}
 
-\subsection*{Estimated parameters}
+\begin{figure}[H]
+\begin{centering}
+\includegraphics[width=0.8\textwidth]{Fig17} 
+\par\end{centering}
+\end{figure}
 
-\addcontentsline{toc}{subsection}{Parameters}
-\begin{description}
-\item [{mu.source($z$,$i$):}] Mean isotope value for source $z$, isotope $i$. 
-\item [{sd.source($z$,$i$):}] Mean isotope value of the standard deviation for source $z$, isotope $i$.
-\item [{mu.conc($z$,$i$):}] Mean elemental concentration for source $z$, isotope $i$.
-\item [{sd.conc($z$,$i$):}] Mean of the standard deviation for source $z$, isotope $i$.
-\item [{mu.mix($x$,$i$):}] Isotope value for individual $x$, isotope $i$. 
-\item [{rho.mat($z$,$i$,$j$):}] Correlation between isotopes $i$ and $j$ in source $z$.
-\item [{p($x$,$z$):}] Proportional dietary contribution for individual $x$, source $z$. 
-\item [{p.pop($z$):}] Population-level proportional dietary contribution for source $z$. 
-\item [{sd.me($i$):}] Measurement error (standard deviations) for isotope $i$. 
-\item [{sd.res($i$):}] The residual error term (standard deviation) for isotope$i$. 
-\end{description}
+\begin{figure}[H]
+\begin{centering}
+\includegraphics[width=0.8\textwidth]{Fig18} 
+\par\end{centering}
+\end{figure}
 
+\subsubsection{Group assignments}
+IsotopeR has the ability to also specify groups (e.g., sub-populations, sexes) for an analysis.
+
+\begin{itemize}
+\item Load the following input data files from the 2-isotope folder: Mixtures{\_}groups, Sources, SourcesCD, DiscrimSD
+\item Click the \textbf{Run IsotopeR} box
+\item Examine the output and plots. The isotopic mixing space (left) is similar to the previous mixing space with no specified groups, except that two groups are evident in this plot. Posteriors for each group (dashed lines) are included in the posteriors plot (right) and estimates for these posteriors follow p.group (see section 4.4) in the output.
+\end{itemize}
+
+\textbf{Jackplots here}
+
+\subsection{3-isotope model}
+
+IsotopeR also has the ability to graphically display both raw isotope values and estimated mixtures and sources in rotational 3-D plots. For the following analysis, we use the same data from the 2-isotope, 3-source analysis but include measurements of $\delta^{34}$S for mixtures and sources. We note that we could conduct the same analysis as our 2-isotope model, however for simplicity, we use this standard design here. Note that each of the following plots is rotational when viewed in R but saved as snapshots here for display purposes. 
+\subsection{Standard model}
+\begin{itemize}
+\item Upload the following input data files from the 3-isotope folder: \textbf{Mixtures} and \textbf{Sources}.
+\item Keep IsotopeR in default mode by not changing any entries for the plots or control parameters (all should be TRUE).
+\item Click the \textbf{Run IsotopeR} box.
+\item Examine the output and plots. Notice that posteriors and estimates are similar to the standard 2-isotope model. Unlike, the 2-isotope model the \textbf{Observations} plot can be rotated, illustrating the raw stable isotope data for consumers and their major foods in a 3D isotopic mixing space.
+\item Similar to the isotopic mixing space for the 2-source model, the \textbf{Estimated mixing space} plot illustrates the relationship between consumers and their major foods. 
+\end{itemize}
+
+\begin{figure}[H]
+\begin{centering}
+\includegraphics[width=0.8\textwidth]{Fig21} 
+\par\end{centering}
+\end{figure}
+\begin{figure}[H]
+\begin{centering}
+\includegraphics[width=0.8\textwidth]{Fig22} 
+\par\end{centering}
+\end{figure}
 \end{document}

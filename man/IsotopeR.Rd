@@ -10,20 +10,18 @@ This runs the gui for running an IsotopeR model using JAGS.
 IsotopeR()
 }
 \references{
-Hopkins and Ferguson, submitted
-Semmens, B.X., Ward, E.J., Moore, J.W., and Darimont, C.T.: Quantifying Inter-and Intra-Population Niche Variability Using Hierarchical Bayesian Stable Isotope Mixing Models, Public Library of Science, 2009
+Hopkins JB III, Ferguson JM (2012) Estimating the Diets of Animals Using Stable Isotopes and a Comprehensive Bayesian Mixing Model. PLoS ONE 7(1)
 }
 \author{
 Jake Hopkins, Jake Ferguson
 }
 
 \seealso{
-\code{\link[siar]{siarmenu}}
 \code{\link{IsoWrapper}}
 }
 \examples{
 #to run IsotopeR call
-#IsotopeR()
+\dontrun{IsotopeR()}
 #then follow the gui prompts.
 
 #type 'vignette("IsotopeR") for a full tutorial.

@@ -4,7 +4,7 @@
 Mixing Space, 3 sources
 }
 \description{
-3 source mixing space plot used to plot the source estimations and the observations or model fits.
+A mixing space plot for 3 or more sources used to plot the source estimations and the observations or model fits.
 }
 \usage{
 Tri.plots(jags.1, X, sources=NA, plot.mix = FALSE, plot.ind.flag = FALSE, 
@@ -25,8 +25,10 @@ me.flag = FALSE, color.plots=TRUE, xlab=NULL, ylab=NULL)
 Jake Ferguson
 }
 \examples{
-#IsotopeR()
-#load(SampleOutput.Rdata)
-#Tri.plots(jags.1=jags.out, X=X)
+\dontrun{
+IsotopeR()
+load(SampleOutput.Rdata)
+Tri.plots(jags.1=jags.out, X=X)
+}
 }
 

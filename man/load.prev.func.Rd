@@ -17,6 +17,3 @@ plot.mixing.estimates=TRUE, plot.dietary.source.contributions=TRUE, color.plots=
 Jake Ferguson
 }
 
-\seealso{
-\code{\link[siar]{siarmenu}}
-}

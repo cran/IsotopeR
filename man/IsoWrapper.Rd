@@ -11,9 +11,9 @@ A wrapper function for IsotopeR. Used to call the gui.
 \usage{
 IsoWrapper(Mixtures = "Necessary File", Sources = "Necessary File", 
 Concentrations = "Optional File", Measurement.Error = "Optional File", 
-Discrimination.Error = "Optional File", Digestibility.Factor = "Optional File", 
+Discrimination.Error = "Optional File", 
 output.name = "SampleOutput.Rdata", mcmc.chains = 3, mcmc.burn = 1000, 
-mcmc.chainLength = 1000, mcmc.thin = 100, plot.observations = TRUE, 
+mcmc.chainLength = 1000, mcmc.thin = 1, plot.observations = TRUE, 
 plot.mixing.estimates = TRUE, plot.dietary.source.contributions = TRUE, 
 color.plots=TRUE, run.parallel = TRUE)
 }
@@ -31,9 +31,7 @@ The concentration-dependence data. The first n columns in this data input file a
 }
   \item{Discrimination.Error}{Discrimination error data. This data input file contains the standard deviations associated with estimated discrimination factors measured in a controlled diet study. The first n columns in the data file are the standard deviations associated with each controlled diet isotope. The last column gives the source identification of the discrimination factors.
 }
-  \item{Digestibility.Factor}{Digestibility data. This data file contains the digestibility of the sources. The first n columns contain the digestibility for n source isotopes. Each row 
-}
-  \item{output.name}{
+\item{output.name}{
 The name of the .Rdata image file to write the JAGS output to. Will also output a .csv file with the same name containing parameter estimates from the model estimates.
 }
   \item{mcmc.chains}{
@@ -46,7 +44,7 @@ The length of the chain discarded at the beginning of the run.
 The total number of iterations run per chain (includes burnin).
 }
   \item{run.parallel}{
-	  This boolean flag determines whether the mcmc chains should be run in parallel (TRUE) or not (FALSE). Parallel chains requires that mcmc.chains is greater than 1 and that the machine running the mcmc has multiple cores. Note that the Deviance Information Criterion (DIC) cannot be reported when using the parallel feature and so it is automatically turned off when this option is TRUE.
+	  This boolean flag determines whether the mcmc chains should be run in parallel (TRUE) or not (FALSE). Parallel chains requires that mcmc.chains is greater than 1 and that the machine running the mcmc has multiple cores. Note that the Deviance Information Criterion (DIC) cannot be reported when chains are run in parallel.
   }
   \item{mcmc.thin}{
 Thinning rate. Reduces the sample size to every nth iteration.
@@ -66,9 +64,6 @@ This boolean flag defines whether plots should be made in color (TRUE), or grays
 }
 \author{Jake Ferguson}
 
-\seealso{
-\code{\link[siar]{siarmenu}}
-}
 % Add one or more standard keywords, see file 'KEYWORDS' in the
 % R documentation directory.
 \keyword{ ~kwd1 }

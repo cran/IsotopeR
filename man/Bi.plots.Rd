@@ -37,8 +37,10 @@ Jake Ferguson
 }
 %% ~Make other sections like Warning with \section{Warning }{....} ~
 \examples{
-#IsotopeR()
-#load(SampleOutput.Rdata)
-#Bi.plots(jags.1=jags.out, X=X)
+\dontrun{
+IsotopeR()
+load(SampleOutput.Rdata)
+Bi.plots(jags.1=jags.out, X=X)
+}
 }
 

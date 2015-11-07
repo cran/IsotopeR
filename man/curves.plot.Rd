@@ -43,9 +43,11 @@ Jake Ferguson
 
 
 \examples{
-#IsotopeR()
-#load(SampleOutput.Rdata)
-#curves.plot(jags.1=jags.out, num.sources=3, individuals=7)
+\dontrun{
+IsotopeR()
+load(SampleOutput.Rdata)
+curves.plot(jags.1=jags.out, num.sources=3, individuals=7)
+}
 }
 % Add one or more standard keywords, see file 'KEYWORDS' in the
 % R documentation directory.

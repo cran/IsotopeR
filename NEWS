@@ -1,6 +1,17 @@
 Known Issues:
 *Cannot estimate source correlation when more than 2 isotopes are estimated. This is due to computational issues in jags. For now source correlations are set to 0 when estimating more than 3 isotopes.
 *Cannot estimate diet contributions when only 1 isotope is used.
+
+v0.5
+*
+*added group grayscale shades
+*Removed digestibility error from GUI, now needs to be data needs to be corrected manually
+*Discrimination error file now needs to have same source names as in Sources file. If these don't match the software will stop.
+*fixed bug in determining range of diet posterior plots
+*fixed bug in discrimation variation
+*fixed bug in multiple individuals 
+*added rgl observation plots for 3 isotopes
+
 v0.4.7 
 *Fixed bug in model with grouped observations and measurement error
 
@@ -16,6 +27,7 @@ v0.4.2
 v0.4.2
 *fixed assumption that individual labels are consecutive. Note that reported values are still consecutive so it could be problematic to match individual labels to the IsotopeR output when nonconsecutive labels are used.
 *included dic calculation, but only when parallel.runs==FALSE.
+
 v0.4.4 
 *fixed error in drawing plot limits when no measurement error is present.
 
