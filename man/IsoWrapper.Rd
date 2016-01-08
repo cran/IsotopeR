@@ -9,13 +9,12 @@ A wrapper function for IsotopeR. Used to call the gui.
 }
 
 \usage{
-IsoWrapper(Mixtures = "Necessary File", Sources = "Necessary File", 
-Concentrations = "Optional File", Measurement.Error = "Optional File", 
-Discrimination.Error = "Optional File", 
-output.name = "SampleOutput.Rdata", mcmc.chains = 3, mcmc.burn = 1000, 
-mcmc.chainLength = 1000, mcmc.thin = 1, plot.observations = TRUE, 
-plot.mixing.estimates = TRUE, plot.dietary.source.contributions = TRUE, 
-color.plots=TRUE, run.parallel = TRUE)
+IsoWrapper(Mixtures="Necessary File", Sources="Necessary File", 
+  Concentrations="Optional File", Discrimination.Error="Optional File", 
+  Measurement.Error="Optional File", output.name="SampleOutput.Rdata", mcmc.chains=3,
+  mcmc.burn=1000, mcmc.chainLength=1000, mcmc.thin=1, plot.observations=TRUE,
+  plot.mixing.estimates=TRUE, plot.dietary.source.contributions=TRUE, color.plots=TRUE,
+  run.parallel=TRUE)
 }
 \arguments{
   \item{Mixtures}{
@@ -27,10 +26,11 @@ Source istope values. Each source is a sample of a consumer's dietary items (may
   \item{Concentrations}{
 The concentration-dependence data. The first n columns in this data input file are the concentration data for each sample, where n is the number of elemental concentrations used in the analysis (e.g., [C], [N]). Columns with elemental concentrations need to match Sources and Mixtures (e.g., column 1 in SourceCD and Sources files contain [C] and delta-13C values, respectively). Column n+1 identifies the source in which the set of concentrations belong. All concentrations belonging to the first source should be denoted with integer "1", the second source as "2", etc. The last column links sampled dietary item concentrations to each sub-source. This feature assigns equal weight to each sub-source's elemental concentrations.
 }
+\item{Discrimination.Error}{Discrimination error data. This data input file contains the standard deviations associated with estimated discrimination factors measured in a controlled diet study. The first n columns in the data file are the standard deviations associated with each controlled diet isotope. The last column gives the source identification of the discrimination factors.
+}
   \item{Measurement.Error}{Data on measurement error associated with mass spectrometry. This data input file contains all isotopic measurements for standards. Isotope values need to be in the same order as other data files (e.g., column 1 in MeasurementError, Mixtures, and Sources files contain delta-13C values).
 }
-  \item{Discrimination.Error}{Discrimination error data. This data input file contains the standard deviations associated with estimated discrimination factors measured in a controlled diet study. The first n columns in the data file are the standard deviations associated with each controlled diet isotope. The last column gives the source identification of the discrimination factors.
-}
+  
 \item{output.name}{
 The name of the .Rdata image file to write the JAGS output to. Will also output a .csv file with the same name containing parameter estimates from the model estimates.
 }

@@ -2,20 +2,15 @@
 #code based on Semmens et al 2009
 #see IsotopeR instructions.doc for details on running the model.
 #see Hopkins and Ferguson 2011 for details on the model structure.
-#Jake Ferguson: last updated 7/1/11
 
 #for debugging
 #source('IsotopeRModelsNoGroups.R')
 #source('IsotopeRModelsGroups.R')
 
 
-# source('IsotopeRgui.R'); IsoWrapper(Mixtures="Data_Example/4-source/Mixtures.csv", Sources="Data_Example/4-source/Sources.csv", Concentrations="Data_Example/4-source/SourcesCD.csv", Discrimination.Error="Data_Example/4-source/DiscrimSD.csv", output.name="SampleOutput.Rdata", mcmc.chains=3, mcmc.burn=1e3, mcmc.chainLength=1e3, mcmc.thin=1, plot.observations=F,  plot.mixing.estimates=F, plot.dietary.source.contributions=F, color.plots=F, run.parallel = TRUE)
-# source('IsotopeRgui.R'); IsoWrapper(Mixtures="Data_Example/2-isotope/Mixture_groups.csv", Sources="Data_Example/2-isotope/Sources.csv", Concentrations="Data_Example/2-isotope/SourcesCD.csv",  Measurement.Error="Data_Example/2-isotope/MError.csv", output.name="SampleOutput.Rdata", mcmc.chains=3, mcmc.burn=1e3, mcmc.chainLength=1e3, mcmc.thin=1, plot.observations=F, plot.mixing.estimates=F, plot.dietary.source.contributions=F, color.plots=F, run.parallel = TRUE)
-# source('IsotopeRgui.R'); IsoWrapper(Mixtures="Data_Example/2-isotope/Mixture_groups.csv", Sources="Data_Example/2-isotope/Sources.csv", Concentrations="Data_Example/2-isotope/SourcesCD.csv", Discrimination.Error="Data_Example/2-isotope/DiscrimSD.csv", Measurement.Error="Data_Example/2-isotope/MError.csv", output.name="SampleOutput.Rdata", mcmc.chains=3, mcmc.burn=1e3, mcmc.chainLength=1e3, mcmc.thin=1, plot.observations=F, plot.mixing.estimates=F, plot.dietary.source.contributions=F, color.plots=F, run.parallel = TRUE)
-# source('IsotopeRgui.R'); IsoWrapper(Mixtures="Data_Example/Mixtures.csv", Sources="Data_Example/Sources.csv", Discrimination.Error="Data_Example/DiscrimSD.csv", output.name="SampleOutput.Rdata", mcmc.chains=3, mcmc.burn=1e3, mcmc.chainLength=1e3, mcmc.thin=1, plot.observations=F,  plot.mixing.estimates=F, plot.dietary.source.contributions=F, color.plots=F, run.parallel = TRUE)
-
-# IsoWrapper <- function(Mixtures="Necessary File", Sources="Necessary File", Concentrations="Optional File", Measurement.Error="Optional File", Discrimination.Error="Optional File", Digestibility.Factor="Optional File", output.name="SampleOutput.Rdata", mcmc.chains=3, mcmc.burn=1e3, mcmc.chainLength=1e3, mcmc.thin=1, plot.observations=TRUE,  plot.mixing.estimates=TRUE, plot.dietary.source.contributions=TRUE, color.plots=TRUE, run.parallel = TRUE) {
-IsoWrapper <- function(Mixtures="Necessary File", Sources="Necessary File", Concentrations="Optional File", Measurement.Error="Optional File", Discrimination.Error="Optional File", output.name="SampleOutput.Rdata", mcmc.chains=3, mcmc.burn=1e3, mcmc.chainLength=1e3, mcmc.thin=1, plot.observations=TRUE,  plot.mixing.estimates=TRUE, plot.dietary.source.contributions=TRUE, color.plots=TRUE, run.parallel = TRUE) {
+# source('IsotopeRgui.R'); IsoWrapper(Mixtures="/home/troutinthemilk/Desktop/Mixtures_yrs2.csv", Sources="/home/troutinthemilk/Desktop/Sources.csv", Concentrations="Optional File", Discrimination.Error="Optional File", output.name="SampleOutput.Rdata", mcmc.chains=3, mcmc.burn=1e3, mcmc.chainLength=1e3, mcmc.thin=1, plot.observations=F,  plot.mixing.estimates=T, plot.dietary.source.contributions=F, color.plots=T, run.parallel = TRUE)
+#source('IsotopeRgui.R'); IsoWrapper(Mixtures="Data_Example/4-source/Mixtures.csv", Sources="Data_Example/4-source/Sources.csv", Concentrations="Data_Example/4-source/SourcesCD.csv", Discrimination.Error="Data_Example/4-source/DiscrimSD.csv", output.name="SampleOutput.Rdata", mcmc.chains=3, mcmc.burn=1e3, mcmc.chainLength=1e3, mcmc.thin=1, plot.observations=F,  plot.mixing.estimates=F, plot.dietary.source.contributions=F, color.plots=F, run.parallel = TRUE)
+IsoWrapper <- function(Mixtures="Necessary File", Sources="Necessary File", Concentrations="Optional File", Discrimination.Error="Optional File", Measurement.Error="Optional File",  output.name="SampleOutput.Rdata", mcmc.chains=3, mcmc.burn=1e3, mcmc.chainLength=1e3, mcmc.thin=1, plot.observations=TRUE,  plot.mixing.estimates=TRUE, plot.dietary.source.contributions=TRUE, color.plots=TRUE, run.parallel = TRUE) {
    
     mcmc.chainLength    <- as.integer(mcmc.chainLength+mcmc.burn) #total number of iterations per chain (includes burnin)
 
@@ -39,7 +34,7 @@ IsoWrapper <- function(Mixtures="Necessary File", Sources="Necessary File", Conc
 	if(dim(X)[2] == 1) {
         X           <- as.matrix(utils::read.table(Mixtures, sep=';', header=TRUE)) #mixture data file
     }
-    N 		 <- dim(X)[1] #number of individuals in the sample
+    N 		    <- dim(X)[1] #number of individuals in the sample
     num.iso     <- dim(X)[2]-2 #number of isotopes in the sample
 
     sources     <- try((utils::read.table(Sources,sep='\t',header=TRUE)), silent=TRUE) #source data
@@ -120,27 +115,16 @@ IsoWrapper <- function(Mixtures="Necessary File", Sources="Necessary File", Conc
 	if(file.flag == "") { 
 		if(num.groups ==1) { curr.model <- IsotopeRfull} else {curr.model <- IsotopeRfullgroup}
 	}
-    #if(file.flag == "noconcnomenodiscrim") { 
-	#	if(num.groups ==1) { curr.model <- IsotopeRnoconcnomenodiscrim} else { curr.model <- IsotopeRnoconcnomenodiscrimgroup}
-	#}
     if(file.flag == "noconc") { 
 		if(num.groups ==1) { curr.model <- IsotopeRnoconc } else { curr.model <- IsotopeRnoconcgroup}
 	}
-    #if(file.flag == "noconcnodiscrim") { 
-	#	if(num.groups ==1) { curr.model <- IsotopeRnoconcnodiscrim} else {curr.model <- IsotopeRnoconcnodiscrimgroup}
-	#}
     if(file.flag == "noconcnome") { 
 		if(num.groups == 1) {curr.model <- IsotopeRnoconcnome} else {curr.model <- IsotopeRnoconcnomegroup}
 	}
-    #if(file.flag == "nodiscrim") { 
-	#	if(num.groups == 1) { curr.model <- IsotopeRnodiscrim } else {curr.model <- IsotopeRnodiscrimgroup}
-	#}
     if(file.flag == "nome") { 
 		if(num.groups == 1) { curr.model <- IsotopeRnome } else {curr.model <- IsotopeRnomegroup }
 	}
-    #if(file.flag == "nomenodiscrim") { 
-	#	if(num.groups == 1) { curr.model <- IsotopeRnomenodiscrim } else {curr.model <- IsotopeRnomenodiscrimgroup }
-	#}
+
     #prior diet proportions
     alpha <- rep(1,num.sources)/num.sources
 
@@ -171,33 +155,33 @@ IsoWrapper <- function(Mixtures="Necessary File", Sources="Necessary File", Conc
 	  source.ss[counter] <- length(which(sources[,num.iso+2] == i))
       counter <- counter+1        
     }    
-        names(source.ss) <- levels(sources$source)
+    names(source.ss) <- levels(sources$source)
     
-		##get array indices for the different subsources
-		subsources <- sources[,num.iso+2]
-		subsource.vec <- nlevels(as.factor(sources[,num.iso+1]))
-		counter <- 1
-		for(i in levels(as.factor(sources[,num.iso+1]))) {
-			subsource.vec[counter] <- nlevels(as.factor(sources[which(sources[,num.iso+1] == i), num.iso+2]))
-			counter <- counter+1
-		}
+	##get array indices for the different subsources
+	subsources <- sources[,num.iso+2]
+	subsource.vec <- nlevels(as.factor(sources[,num.iso+1]))
+	counter <- 1
+	for(i in levels(as.factor(sources[,num.iso+1]))) {
+		subsource.vec[counter] <- nlevels(as.factor(sources[which(sources[,num.iso+1] == i), num.iso+2]))
+		counter <- counter+1
+	}
 
-		subsource.samples <-array(NA, c(num.sources, max(subsource.vec), 2))
-		source.counter <- 1		
-		for(i in levels(as.factor(sources[,num.iso+1]))) {
- 			curr.source.index <- which(sources[,num.iso+1] == i)
-			subsource.counter <- 1
-			for(j in levels(as.factor(sources[curr.source.index, num.iso+2]))) {
-				curr.subsource.index <- which(sources[curr.source.index, num.iso+2] == j)
-				subsource.samples[source.counter, subsource.counter, ] <- 	curr.source.index[1] + curr.subsource.index[c(1, length(curr.subsource.index))] - 1				
-				
-				subsource.counter <- subsource.counter +1
-				
-			}
-			source.counter <- source.counter + 1
+	subsource.samples <-array(NA, c(num.sources, max(subsource.vec), 2))
+	source.counter <- 1		
+	for(i in levels(as.factor(sources[,num.iso+1]))) {
+ 		curr.source.index <- which(sources[,num.iso+1] == i)
+		subsource.counter <- 1
+		for(j in levels(as.factor(sources[curr.source.index, num.iso+2]))) {
+			curr.subsource.index <- which(sources[curr.source.index, num.iso+2] == j)
+			subsource.samples[source.counter, subsource.counter, ] <- 	curr.source.index[1] + curr.subsource.index[c(1, length(curr.subsource.index))] - 1				
+			
+			subsource.counter <- subsource.counter +1
+			
 		}
-        counter <- 1
-        source.mat <- as.matrix(sources[,1:num.iso])
+		source.counter <- source.counter + 1
+	}
+    counter <- 1
+    source.mat <- as.matrix(sources[,1:num.iso])
     
     #prior parameters for sources  
     mu.prior.mu <- rep(0,num.iso)#c(0, 0) #apply(sources[,1:num.iso], 2, mean)
@@ -207,7 +191,6 @@ IsoWrapper <- function(Mixtures="Necessary File", Sources="Necessary File", Conc
     if(!noconc.flag) {
         #bu ild array of isotope concentrations and apply digestability
         cd.mat <- as.matrix(D[,1:num.iso]) #+ rnorm(length(as.matrix(D[,1:num.iso])), 0, 0.01)
-#         cd.mat <- abs(cd.mat)
          ##get array indices for the different subsource concentrations
 		subcd <- D[,num.iso+2]
 		subcd.vec <- nlevels(as.factor(D[,num.iso +1]))
@@ -257,9 +240,11 @@ IsoWrapper <- function(Mixtures="Necessary File", Sources="Necessary File", Conc
     }
 	
 	ind.array 	<- array(NA,c(num.iso,num.inds,max(ind.counts)))
+
 	counter	<- 1
     for(i in levels(ind.levels)) {
-        ind.array[1:num.iso,counter,] 	<- t(X[which(X[,dim.x[2]]==i), 1:num.iso])
+        currObs = which(X[,dim.x[2]]==i)
+        ind.array[1:num.iso,counter,1:length(currObs)] 	<- t(X[which(X[,dim.x[2]]==i), 1:num.iso])
 		counter							<- counter + 1
     }
 	rho.flag	<- ifelse(num.iso ==2, 1, 0)
@@ -300,7 +285,7 @@ IsoWrapper <- function(Mixtures="Necessary File", Sources="Necessary File", Conc
 
 	if(run.parallel) {parallel.state <- "parallel"} else { 
 		parallel.state <- "interruptible"
-		jags.params <- c(jags.params, "dic", 'deviance', 'pD') #dic can only be run in when nonparallel calculations are used.
+		jags.params <- c(jags.params, "dic", 'deviance', 'pd', 'ped') #dic can only be run in when nonparallel calculations are used.
 	}
 	if(noconc.flag) {jags.adapt=1e3} else{ jags.adapt=1e3}
 	jags.out <- runjags::run.jags(model=curr.model, monitor=jags.params, data=jags.dump, adapt=jags.adapt, n.chains=mcmc.chains, burnin=mcmc.burn, sample=(mcmc.chainLength-mcmc.burn), thin=mcmc.thin, psrf.target=1.5, plots=FALSE, silent.jags=FALSE, method=parallel.state)
@@ -320,6 +305,7 @@ IsoWrapper <- function(Mixtures="Necessary File", Sources="Necessary File", Conc
 	if(!run.parallel & mcmc.chains>1) {
 	  sink(file=paste(strsplit(output.name, ".Rdata")[[1]],'.txt',sep=''), append=TRUE)
 	  print(jags.out$dic)
+      #print(jags.out$pd)
 	  sink()
 	}
 	
@@ -407,7 +393,7 @@ IsotopeR    <- function() {
     if(interactive()) {
 		fgui::fguiWindow( basicMenu=FALSE, title="IsotopeR 0.5", text="Please choose an option from the Analysis menu." )
 		#win <- mgui(IsoWrapper, argFilter = list(Mixtures="{{} {.csv}}", Sources="{{} {.csv}}", Concentrations="{{} {.csv}}", Measurement.Error="{{} {.csv}}",   Discrimination.Error="{{} {.csv}}", Digestibility.Factor="{{} {.csv}}"), argText = list(mcmc.chains="number of chains", mcmc.burn="MCMC burnin", mcmc.chainLength="MCMC runs", mcmc.thin="thinning rate", output.name="Output file"), argOption = list(run.parallel=c("TRUE", "FALSE"), plot.observations=c("TRUE","FALSE"), plot.dietary.source.contributions= c("TRUE", "FALSE"), plot.mixing.estimates=c('TRUE','FALSE'), color.plots=c("TRUE", "FALSE")), closeOnExec=TRUE, title=c("Analysis","New Run"), exec="Run IsotopeR", helpsFunc="IsoWrapper", output=NULL)
-		win <- fgui::mgui(IsoWrapper, argFilter = list(Mixtures="{{} {.csv}}", Sources="{{} {.csv}}", Concentrations="{{} {.csv}}", Measurement.Error="{{} {.csv}}",   Discrimination.Error="{{} {.csv}}"), argText = list(mcmc.chains="number of chains", mcmc.burn="MCMC burnin", mcmc.chainLength="MCMC runs", mcmc.thin="thinning rate", output.name="Output file"), argOption = list(run.parallel=c("TRUE", "FALSE"), plot.observations=c("TRUE","FALSE"), plot.dietary.source.contributions= c("TRUE", "FALSE"), plot.mixing.estimates=c('TRUE','FALSE'), color.plots=c("TRUE", "FALSE")), closeOnExec=TRUE, title=c("Analysis","New Run"), exec="Run IsotopeR", helpsFunc="IsoWrapper", output=NULL)
+		win <- fgui::mgui(IsoWrapper, argFilter = list(Mixtures="{{} {.csv}}", Sources="{{} {.csv}}", Concentrations="{{} {.csv}}", Discrimination.Error="{{} {.csv}}", Measurement.Error="{{} {.csv}}"), argText = list(mcmc.chains="number of chains", mcmc.burn="MCMC burnin", mcmc.chainLength="MCMC runs", mcmc.thin="thinning rate", output.name="Output file"), argOption = list(run.parallel=c("TRUE", "FALSE"), plot.observations=c("TRUE","FALSE"), plot.dietary.source.contributions= c("TRUE", "FALSE"), plot.mixing.estimates=c('TRUE','FALSE'), color.plots=c("TRUE", "FALSE")), closeOnExec=TRUE, title=c("Analysis","New Run"), exec="Run IsotopeR", helpsFunc="IsoWrapper", output=NULL)
         
 		win <- fgui::mgui(load.prev.func, title=c("Analysis","Load Previous Run"), argFilter= list(file.name="{{} {.Rdata}}"), argOption = list(plot.observations=c("TRUE","FALSE"), plot.dietary.source.contributions= c("TRUE", "FALSE"), plot.mixing.estimates=c('TRUE','FALSE'), color.plots=c("TRUE", "FALSE")), closeOnExec=TRUE , exec="Plot", output=NULL, helpsFunc="IsoWrapper")
     }

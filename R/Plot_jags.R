@@ -66,7 +66,7 @@ RGL.plots <- function(jags.1, X, sources, plot.mix=FALSE, plot.ind.flag=FALSE, c
 		#plot the mixtures
 	  	jags.names 	<- dimnames(jags.1$summary$quantiles)
 	  	jags.table 	<- jags.1$summary$quantiles
-	  	num.ind 	<- dim(X)[1] #update to account for levels
+	  	num.ind 	<- length(unique(X[,5]))
 
 	  	med 	<- which(jags.names[[2]] == '50%')
 	  	low.ci 	<- which(jags.names[[2]] == '2.5%')
