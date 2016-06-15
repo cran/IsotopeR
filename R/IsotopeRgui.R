@@ -6,9 +6,11 @@
 #for debugging
 #source('IsotopeRModelsNoGroups.R')
 #source('IsotopeRModelsGroups.R')
+#source('IsotopeRModelsNoGroupsNoInd.R')
 
 
-# source('IsotopeRgui.R'); IsoWrapper(Mixtures="/home/troutinthemilk/Desktop/Mixtures_yrs2.csv", Sources="/home/troutinthemilk/Desktop/Sources.csv", Concentrations="Optional File", Discrimination.Error="Optional File", output.name="SampleOutput.Rdata", mcmc.chains=3, mcmc.burn=1e3, mcmc.chainLength=1e3, mcmc.thin=1, plot.observations=F,  plot.mixing.estimates=T, plot.dietary.source.contributions=F, color.plots=T, run.parallel = TRUE)
+#source('IsotopeRgui.R'); IsoWrapper(Mixtures="/home/troutinthemilk/Desktop/2-isotope/Mixtures.csv", Sources="/home/troutinthemilk/Desktop/2-isotope/Sources.csv", Concentrations="Optional File", Discrimination.Error="Optional File", output.name="SampleOutput.Rdata", mcmc.chains=3, mcmc.burn=1e2, mcmc.chainLength=1e2, mcmc.thin=1, plot.observations=F,  plot.mixing.estimates=T, plot.dietary.source.contributions=T, color.plots=T, run.parallel = TRUE)
+# source('IsotopeRgui.R'); IsoWrapper(Mixtures="/home/troutinthemilk/Desktop/Mixtures.csv", Sources="/home/troutinthemilk/Desktop/Sources.csv", Concentrations="Optional File", Discrimination.Error="Optional File", output.name="SampleOutput.Rdata", mcmc.chains=3, mcmc.burn=1e3, mcmc.chainLength=1e3, mcmc.thin=1, plot.observations=F,  plot.mixing.estimates=T, plot.dietary.source.contributions=F, color.plots=T, run.parallel = TRUE)
 #source('IsotopeRgui.R'); IsoWrapper(Mixtures="Data_Example/4-source/Mixtures.csv", Sources="Data_Example/4-source/Sources.csv", Concentrations="Data_Example/4-source/SourcesCD.csv", Discrimination.Error="Data_Example/4-source/DiscrimSD.csv", output.name="SampleOutput.Rdata", mcmc.chains=3, mcmc.burn=1e3, mcmc.chainLength=1e3, mcmc.thin=1, plot.observations=F,  plot.mixing.estimates=F, plot.dietary.source.contributions=F, color.plots=F, run.parallel = TRUE)
 IsoWrapper <- function(Mixtures="Necessary File", Sources="Necessary File", Concentrations="Optional File", Discrimination.Error="Optional File", Measurement.Error="Optional File",  output.name="SampleOutput.Rdata", mcmc.chains=3, mcmc.burn=1e3, mcmc.chainLength=1e3, mcmc.thin=1, plot.observations=TRUE,  plot.mixing.estimates=TRUE, plot.dietary.source.contributions=TRUE, color.plots=TRUE, run.parallel = TRUE) {
    
@@ -17,7 +19,7 @@ IsoWrapper <- function(Mixtures="Necessary File", Sources="Necessary File", Conc
     #name and location of the model file passed to JAGS
     model.loc   <- "IsotopeR.txt" 
 
-    #parameters to be returned by JAGS
+    #parameters to be returned by JAG
     jags.params <- c("mu.source", "sd.source", "rho.mat", "mu.conc", "sd.conc", "mu.mix", "p", "p.pop", "sd.me","sd.res") #modified 8/7/15
     file.flag <- ""
     noconc.flag = 0
@@ -34,8 +36,10 @@ IsoWrapper <- function(Mixtures="Necessary File", Sources="Necessary File", Conc
 	if(dim(X)[2] == 1) {
         X           <- as.matrix(utils::read.table(Mixtures, sep=';', header=TRUE)) #mixture data file
     }
-    N 		    <- dim(X)[1] #number of individuals in the sample
+    N 		    <- dim(X)[1] #number of samples
     num.iso     <- dim(X)[2]-2 #number of isotopes in the sample
+    num.inds    <- nlevels(as.factor(X[,dim(X)[2]]))
+    if(num.inds == 1) { jags.params <- jags.params[-7]}
 
     sources     <- try((utils::read.table(Sources,sep='\t',header=TRUE)), silent=TRUE) #source data
     if(class(sources) == 'try-error') {stop("Source file not found")}
@@ -113,16 +117,32 @@ IsoWrapper <- function(Mixtures="Necessary File", Sources="Necessary File", Conc
 
 	#determine the proper model to run
 	if(file.flag == "") { 
-		if(num.groups ==1) { curr.model <- IsotopeRfull} else {curr.model <- IsotopeRfullgroup}
+        if(num.groups == 1 & num.inds == 1) { curr.model <- IsotopeRfullnoind }
+        else{
+		  if(num.groups == 1) { curr.model <- IsotopeRfull} 
+          else {curr.model <- IsotopeRfullgroup}
+        }
 	}
     if(file.flag == "noconc") { 
-		if(num.groups ==1) { curr.model <- IsotopeRnoconc } else { curr.model <- IsotopeRnoconcgroup}
+        if(num.groups == 1 & num.inds == 1) { curr.model <- IsotopeRnoconcnoind }
+		else {
+           if(num.groups ==1) { curr.model <- IsotopeRnoconc } 
+           else { curr.model <- IsotopeRnoconcgroup}
+        }
 	}
     if(file.flag == "noconcnome") { 
-		if(num.groups == 1) {curr.model <- IsotopeRnoconcnome} else {curr.model <- IsotopeRnoconcnomegroup}
+        if(num.groups == 1 & num.inds == 1) { curr.model <- IsotopeRnoconcnomenoind }
+		else {
+            if(num.groups == 1) {curr.model <- IsotopeRnoconcnome} 
+            else {curr.model <- IsotopeRnoconcnomegroup}
+        }
 	}
     if(file.flag == "nome") { 
-		if(num.groups == 1) { curr.model <- IsotopeRnome } else {curr.model <- IsotopeRnomegroup }
+		if(num.groups == 1 & num.inds == 1) { curr.model <- IsotopeRnomenoind }
+        else {
+            if(num.groups == 1) { curr.model <- IsotopeRnome } 
+            else {curr.model <- IsotopeRnomegroup }
+        }
 	}
 
     #prior diet proportions
@@ -228,8 +248,7 @@ IsoWrapper <- function(Mixtures="Necessary File", Sources="Necessary File", Conc
     }
 
     #gets number of individual observations
-	dim.x	<- dim(X)
-    num.inds 	<- nlevels(as.factor(X[,dim.x[2]]))
+	dim.x	    <- dim(X)
 	ind.levels	<- as.factor(X[,dim.x[2]])
     ind.counts 	<- vector('numeric',num.inds)
 
@@ -288,14 +307,21 @@ IsoWrapper <- function(Mixtures="Necessary File", Sources="Necessary File", Conc
 		jags.params <- c(jags.params, "dic", 'deviance', 'pd', 'ped') #dic can only be run in when nonparallel calculations are used.
 	}
 	if(noconc.flag) {jags.adapt=1e3} else{ jags.adapt=1e3}
+    runjags::runjags.options(summary.warning=FALSE, adapt.incomplete='silent', force.summary=TRUE)
 	jags.out <- runjags::run.jags(model=curr.model, monitor=jags.params, data=jags.dump, adapt=jags.adapt, n.chains=mcmc.chains, burnin=mcmc.burn, sample=(mcmc.chainLength-mcmc.burn), thin=mcmc.thin, psrf.target=1.5, plots=FALSE, silent.jags=FALSE, method=parallel.state)
-	if(mcmc.chains > 1) {	
+#    runjags::add.summary(jags.out, silent.jags=TRUE)
+print(names(jags.out))
+    print(jags.out$summaries)
+    print(jags.out$summary.available)
+    print(jags.out$psrf)
+	if(mcmc.chains > 1) {
+        print('A')	
 	  r.est <- jags.out$psrf$psrf[,1] 
 	  jags.output.mat <- cbind(jags.out$summary$statistics[,1:2], jags.out$summary$quantiles, r.est)
 	} else {
 	  jags.output.mat <- cbind(jags.out$summary$statistics[,1:2], jags.out$summary$quantiles)	
 	}
-    
+    print('B')
     print(jags.output.mat)
     if(!run.parallel & mcmc.chains>1) {
 	  print(jags.out$dic)

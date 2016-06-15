@@ -500,9 +500,7 @@ Bi.plots <- function(jags.1, X, sources=NA, plot.mix=FALSE,plot.ind.flag=FALSE, 
   
   x.points <- mu.source[1:(length(mu.source)/2)]
 
-#   if(me.flag) { x.sd     <- cov.source[1:2] + sigmaz.med[1] } else { 
     x.sd        <- cov.source[1:2] #+ sigmaz.med[1]^2)
-#   }
   x.lowCI <- x.points-1*x.sd
   x.hiCI <- x.points+1*x.sd
   
@@ -510,11 +508,7 @@ Bi.plots <- function(jags.1, X, sources=NA, plot.mix=FALSE,plot.ind.flag=FALSE, 
   y.lowCI <- mu.lowCI[(length(mu.source)/2+1):length(mu.source)]
   y.hiCI <- mu.hiCI[(length(mu.source)/2+1):length(mu.source)]
 
-#   if(me.flag) {
-#       y.sd <- cov.source[3:4]+ sigmaz.med[2]
-#   } else {
       y.sd <- cov.source[3:4]
-#   }
   y.lowCI <- y.points - 1*y.sd
   y.hiCI <- y.points + 1*y.sd
   
@@ -649,11 +643,7 @@ Bi.plots <- function(jags.1, X, sources=NA, plot.mix=FALSE,plot.ind.flag=FALSE, 
 			T.mat[1,2] <- rho.vec[i]^2 
 			T.mat[2,1] <- rho.vec[i]^2 
 			
-# 			if(me.flag) {me.mat <- diag(sigmaz.med[1:2]^2)
-# 				T.mat  <- c(cov.source[i], cov.source[i], cov.source[i+2], cov.source[i+2])*T.mat*sd.vec + me.mat
-# 			} else {
-				T.mat  <- c(cov.source[i], cov.source[i], cov.source[i+2], cov.source[i+2])*T.mat*sd.vec
-# 			}
+			T.mat  <- c(cov.source[i], cov.source[i], cov.source[i+2], cov.source[i+2])*T.mat*sd.vec
 
 			graphics::lines(ellipse::ellipse(T.mat, centre=c(x.points[i], y.points[i]), level=0.95), lty=2, lwd=2)
 
@@ -697,7 +687,6 @@ Bi.plots <- function(jags.1, X, sources=NA, plot.mix=FALSE,plot.ind.flag=FALSE, 
 ##plots smoothed histograms of individual distributions
 #######################################################
 curves.plot <- function(jags.1, num.sources, num.chains, color=FALSE, individuals, xlab.vec, num.groups=1) {
-
   output 	<- jags.1$summary$quantiles
   out.mcmc 	<- jags.1$mcmc
     
@@ -730,9 +719,9 @@ curves.plot <- function(jags.1, num.sources, num.chains, color=FALSE, individual
 		group.smooth.y	<- group.smooth.x
 	
 		for(j in 1:num.sources) {
+			p.ind <- which(out.names == paste("p[",1,',',j,']',sep='') )
 
-			p.ind <- which(out.names== paste("p[",1,',',j,']',sep='') )
-			p.pop <- which(out.names== paste("p.pop[",j,']',sep='') )
+			p.pop <- which(out.names == paste("p.pop[",j,']',sep='') )
 			if(num.groups > 1) { p.group <- which(out.names== paste("p.group[",j,']',sep='') ) }
 			
 			p1.popmed[j] <- output[p.pop, out.perc]
@@ -742,14 +731,14 @@ curves.plot <- function(jags.1, num.sources, num.chains, color=FALSE, individual
 	
 			ind.smooth.x[[j]]	<- matrix(NA, individuals, 512)
 			ind.smooth.y[[j]]	<- matrix(NA, individuals, 512)
-
-			for(i in 1:individuals) {
-				p.ind 							<- which(out.names== paste("p[",i,',',j,']',sep='') )
-				temp 							<- density(mcmc.rbind[,p.ind], kernel="epanechnikov", from=0, to=1)     
-				ind.smooth.x[[j]][i,]	<- temp$x
-				ind.smooth.y[[j]][i,]	<- temp$y
+			if(length(p.ind) != 0) {
+				for(i in 1:individuals) {
+					p.ind 							<- which(out.names== paste("p[",i,',',j,']',sep='') )
+					temp 							<- density(mcmc.rbind[,p.ind], kernel="epanechnikov", from=0, to=1)     
+					ind.smooth.x[[j]][i,]	<- temp$x
+					ind.smooth.y[[j]][i,]	<- temp$y
+				}
 			}
-
 			if(num.groups > 1) {
 				group.smooth.x[[j]]	<- matrix(NA, num.groups, 512)
 				group.smooth.y[[j]]	<- matrix(NA, num.groups, 512)
@@ -763,18 +752,27 @@ curves.plot <- function(jags.1, num.sources, num.chains, color=FALSE, individual
 		}#end for
   
 	for(i in 1:num.sources) {
-		if(length(group.smooth.y) != 0) {
-		  ylims = c(0,max(ind.smooth.y[[i]], pop.smooth.y[i,], group.smooth.y[[i]]))
-		} else {
-		  ylims = c(0,max(ind.smooth.y[[i]], pop.smooth.y[i,]))
+		if(length(p.ind) == 0) {
+			if(length(group.smooth.y) != 0) {
+			  ylims = c(0,max(pop.smooth.y[i,], group.smooth.y[[i]]))
+			} else {
+			  ylims = c(0,max(pop.smooth.y[i,]))
+			}
+			graphics::plot(pop.smooth.x[i,], pop.smooth.y[i,], type='l', lwd=2,  ylab="probability density", xlab=xlab.vec[j], main="", col=source.colvec[i])
 		}
-		graphics::plot(pop.smooth.x[i,], pop.smooth.y[i,], type='l', lwd=2, xlim=c(0,1), ylim=ylims, ylab="probability density", xlab=xlab.vec[i], main="", col="white")
-		for(j in 1:individuals) {
-			if(color) { graphics::lines(ind.smooth.x[[i]][j,], ind.smooth.y[[i]][j,], type='l', lwd=2, col='grey') } else {
-			graphics::lines(ind.smooth.x[[i]][j,], ind.smooth.y[[i]][j,], type='l', lwd=2, col="grey") }
-		}
-		graphics::lines(pop.smooth.x[i,], pop.smooth.y[i,], type='l', lwd=2,  ylab="probability density", xlab=xlab.vec[j], main="", col=source.colvec[i])
-			
+		else {
+			if(length(group.smooth.y) != 0) {
+			  ylims = c(0,max(ind.smooth.y[[i]], pop.smooth.y[i,], group.smooth.y[[i]]))
+			} else {
+			  ylims = c(0,max(ind.smooth.y[[i]], pop.smooth.y[i,]))
+			}
+			graphics::plot(pop.smooth.x[i,], pop.smooth.y[i,], type='l', lwd=2, xlim=c(0,1), ylim=ylims, ylab="probability density", xlab=xlab.vec[i], main="", col="white")
+			for(j in 1:individuals) {
+				if(color) { graphics::lines(ind.smooth.x[[i]][j,], ind.smooth.y[[i]][j,], type='l', lwd=2, col='grey') } else {
+				graphics::lines(ind.smooth.x[[i]][j,], ind.smooth.y[[i]][j,], type='l', lwd=2, col="grey") }
+			}
+			graphics::lines(pop.smooth.x[i,], pop.smooth.y[i,], type='l', lwd=2,  ylab="probability density", xlab=xlab.vec[j], main="", col=source.colvec[i])
+		}	
 		if(num.groups > 1) {
 			for(j in 1:num.groups) {
 	 			if(color) { graphics::lines(group.smooth.x[[i]][j,], group.smooth.y[[i]][j,], type='l', lwd=1, col='black', lty=2) } else {

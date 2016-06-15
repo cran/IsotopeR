@@ -2,6 +2,12 @@ Known Issues:
 *Cannot estimate source correlation when more than 2 isotopes are estimated. This is due to computational issues in jags. For now source correlations are set to 0 when estimating more than 3 isotopes.
 *Cannot estimate diet contributions when only 1 isotope is used.
 
+v0.5.4
+*fixed bug that arose due to runjags package (runjags_2.0.3-2) that did not caclulate summary statistics
+
+v0.5.3
+*Added new models that don't have individual level of variation. 
+
 v0.5.2
 *updated order of inputs in GUI
 *removed hyperparameters for means of concentration dependnence (now uniform distribution)
